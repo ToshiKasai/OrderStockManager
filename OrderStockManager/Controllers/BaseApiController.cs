@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
 using OrderStockManager.Infrastructure;
 using OrderStockManager.Models;
 using System;
@@ -31,6 +32,59 @@ namespace OrderStockManager.Controllers
             get
             {
                 return _AppRoleManager ?? Request.GetOwinContext().GetUserManager<ApplicationRoleManager>();
+            }
+        }
+
+        protected IAuthenticationManager AuthenticationManager
+        {
+            get
+            {
+                return Request.GetOwinContext().Authentication;
+            }
+        }
+
+        protected int GetUserId()
+        {
+            return AuthenticationManager.User.Identity.GetUserId<int>();
+        }
+
+        protected string GetUserName()
+        {
+            return AuthenticationManager.User.Identity.GetUserName();
+        }
+
+        protected string GetClientIp()
+        {
+            try
+            {
+                IEnumerable<string> headerValues;
+                string result = string.Empty;
+                if (ControllerContext.Request.Headers.TryGetValues("X-Forwarded-For", out headerValues) == true)
+                {
+                    var xForwardedFor = headerValues.FirstOrDefault();
+                    result = xForwardedFor.Split(',').GetValue(0).ToString().Trim();
+                }
+                else
+                {
+                    if (ControllerContext.Request.Properties.ContainsKey("MS_HttpContext"))
+                    {
+                        result = ((HttpContextWrapper)ControllerContext.Request.Properties["MS_HttpContext"]).Request.UserHostAddress;
+                    }
+                }
+
+                if (result != "::1"/*localhost*/)
+                {
+                    result = result.Split(':').GetValue(0).ToString().Trim();
+                }
+                else
+                {
+                    result = "localhost";
+                }
+                return result;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
             }
         }
 
@@ -96,37 +150,6 @@ namespace OrderStockManager.Controllers
                     if (!string.IsNullOrWhiteSpace(err))
                         ModelState.AddModelError("", err.Trim(' ') + "。");
                 }
-            }
-        }
-
-        protected string GetClientIp()
-        {
-            try
-            {
-                IEnumerable<string> headerValues;
-                string result = string.Empty;
-                if (ControllerContext.Request.Headers.TryGetValues("X-Forwarded-For", out headerValues) == true)
-                {
-                    var xForwardedFor = headerValues.FirstOrDefault();
-                    result = xForwardedFor.Split(',').GetValue(0).ToString().Trim();
-                }
-                else
-                {
-                    if (ControllerContext.Request.Properties.ContainsKey("MS_HttpContext"))
-                    {
-                        result = ((HttpContextWrapper)ControllerContext.Request.Properties["MS_HttpContext"]).Request.UserHostAddress;
-                    }
-                }
-
-                if (result != "::1"/*localhost*/)
-                {
-                    result = result.Split(':').GetValue(0).ToString().Trim();
-                }
-                return result;
-            }
-            catch (Exception)
-            {
-                return string.Empty;
             }
         }
     }

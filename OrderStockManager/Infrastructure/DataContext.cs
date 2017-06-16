@@ -69,5 +69,7 @@ namespace OrderStockManager.Infrastructure
         public DbSet<UserModel> UserModels { get; set; }
         public DbSet<RoleModel> RoleModels { get; set; }
         public DbSet<UserRoleModel> UserRoleModels { get; set; }
+
+        public DbSet<MakerModel> MakerModels { get; set; }
     }
 }

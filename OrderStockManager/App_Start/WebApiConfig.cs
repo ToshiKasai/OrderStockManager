@@ -22,6 +22,8 @@ namespace OrderStockManager
             // PerThreadLifetimeManager : A LifetimeManager that holds the instances given to it, keeping one instance per thread.
             var container = new UnityContainer();
             container.RegisterType<IUserRepository, UserRepository>(new HierarchicalLifetimeManager());
+            container.RegisterType<IRoleRepository, RoleRepository>(new HierarchicalLifetimeManager());
+            container.RegisterType<IMakerRepository, MakerRepository>(new HierarchicalLifetimeManager());
             config.DependencyResolver = new UnityResolver(container);
 
             // Web API ルート

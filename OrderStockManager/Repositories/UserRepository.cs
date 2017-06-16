@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
@@ -30,20 +31,27 @@ namespace OrderStockManager.Repositories
         {
             try
             {
-                IQueryable<UserModel> query = this.AppUserManager.Users.OrderBy(x => x.Id);
+                IQueryable<UserModel> query = AppUserManager.Users.OrderBy(x => x.Id);
                 if (!parameter.Deleted)
+                {
                     query = query.Where(x => x.Deleted == false);
+                }
                 if (parameter.Enabled)
+                {
                     query = query.Where(x => x.Enabled == true);
+                }
 
                 if (parameter.Limit.HasValue)
                 {
                     if (parameter.Page.HasValue)
+                    {
                         query = query.Skip((int)parameter.Limit * (int)parameter.Page).Take((int)parameter.Limit);
+                    }
                     else
+                    {
                         query = query.Take((int)parameter.Limit);
+                    }
                 }
-
 
                 var result = query.ProjectTo<UserInterfaceModel>().ToList();
                 if (result == null || result.Count == 0)
@@ -57,18 +65,22 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public async Task<UserInterfaceModel> GetUserByIdForInterfaceAsync(int id)
+        public async Task<RepositoryResult<UserInterfaceModel>> GetUserByIdForInterfaceAsync(int id)
         {
             try
             {
                 if (id <= 0)
-                    return null;
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest);
+                }
 
                 var user = await AppUserManager.FindByIdAsync(id);
                 if (user == null)
-                    return null;
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.NotFound);
+                }
 
-                return Mapper.Map<UserInterfaceModel>(user);
+                return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.OK, Mapper.Map<UserInterfaceModel>(user));
             }
             catch (Exception ex)
             {
@@ -77,18 +89,22 @@ namespace OrderStockManager.Repositories
 
         }
 
-        public async Task<UserInterfaceModel> GetUserByNameForInterfaceAsync(string userName)
+        public async Task<RepositoryResult<UserInterfaceModel>> GetUserByNameForInterfaceAsync(string userName)
         {
             try
             {
                 if (string.IsNullOrEmpty(userName))
-                    return null;
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest);
+                }
 
                 var user = await AppUserManager.FindByNameAsync(userName);
                 if (user == null)
-                    return null;
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.NotFound);
+                }
 
-                return Mapper.Map<UserInterfaceModel>(user);
+                return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.OK, Mapper.Map<UserInterfaceModel>(user));
             }
             catch (Exception ex)
             {
@@ -97,35 +113,33 @@ namespace OrderStockManager.Repositories
 
         }
 
-        public async Task<IdentityResult> CreateUserAsync(UserInterfaceModel createUser)
+        public async Task<RepositoryResult<UserInterfaceModel>> CreateUserAsync(UserInterfaceModel createUser)
         {
             try
             {
-                using (DataContext dbContext = DataContext.Create())
-                using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                if (await AppUserManager.FindByIdAsync(createUser.Id) != null)
                 {
-                    if (await AppUserManager.FindByIdAsync(createUser.Id) != null)
-                    {
-                        tx.Rollback();
-                        return new IdentityResult("Conflict");
-                    }
-
-                    var user = new UserModel();
-                    user.UserName = createUser.UserName;
-                    user.Name = createUser.Name;
-                    user.Email = createUser.Email;
-                    user.Enabled = createUser.Enabled;
-                    IdentityResult result = await AppUserManager.CreateAsync(user, createUser.NewPassword);
-                    if (!result.Succeeded)
-                    {
-                        tx.Rollback();
-                    }
-                    else
-                    {
-                        tx.Commit();
-                    }
-                    return result;
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.Conflict);
                 }
+
+                if(string.IsNullOrWhiteSpace(createUser.NewPassword))
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest, "パスワードは必須項目です。");
+                }
+
+                var user = new UserModel();
+                user.UserName = createUser.UserName;
+                user.Name = createUser.Name;
+                user.Email = createUser.Email;
+                user.Enabled = createUser.Enabled;
+
+                var result = new RepositoryResult<UserInterfaceModel>(HttpStatusCode.Created);
+                result.identityResult = await AppUserManager.CreateAsync(user, createUser.NewPassword);
+                if (!result.identityResult.Succeeded)
+                {
+                    result.Code = HttpStatusCode.BadRequest;
+                }
+                return result;
             }
             catch (Exception ex)
             {
@@ -133,12 +147,14 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public async Task<IdentityResult> ModifyUserAsync(int id, UserInterfaceModel modifiedUser)
+        public async Task<RepositoryResult<UserInterfaceModel>> ModifyUserAsync(int id, UserInterfaceModel modifiedUser)
         {
             try
             {
                 if (id <= 0)
-                    return new IdentityResult("BadRequest");
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest);
+                }
 
                 using (DataContext dbContext = DataContext.Create())
                 using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
@@ -148,7 +164,7 @@ namespace OrderStockManager.Repositories
                     if (user == null)
                     {
                         tx.Rollback();
-                        return new IdentityResult("NotFound");
+                        return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.NotFound);
                     }
 
                     IdentityResult result;
@@ -159,7 +175,7 @@ namespace OrderStockManager.Repositories
                         if (!result.Succeeded)
                         {
                             tx.Rollback();
-                            return result;
+                            return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest) { identityResult = result };
                         }
                     }
 
@@ -168,11 +184,11 @@ namespace OrderStockManager.Repositories
                     if (!result.Succeeded)
                     {
                         tx.Rollback();
-                        return result;
+                        return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest) { identityResult = result };
                     }
 
                     tx.Commit();
-                    return result;
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.OK) { identityResult = result };
                 }
             }
             catch (Exception ex)
@@ -181,12 +197,14 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public async Task<IdentityResult> DeleteUserAsync(int id)
+        public async Task<RepositoryResult<UserInterfaceModel>> DeleteUserAsync(int id)
         {
             try
             {
                 if (id <= 0)
-                    return new IdentityResult("BadRequest");
+                {
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest);
+                }
 
                 using (DataContext dbContext = DataContext.Create())
                 using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
@@ -195,17 +213,17 @@ namespace OrderStockManager.Repositories
                     if (user == null)
                     {
                         tx.Rollback();
-                        return new IdentityResult("NotFound");
+                        return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.NotFound);
                     }
 
                     IdentityResult result = await AppUserManager.DeleteAsync(user);
                     if (!result.Succeeded)
                     {
                         tx.Rollback();
-                        return result;
+                        return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.BadRequest) { identityResult = result };
                     }
                     tx.Commit();
-                    return result;
+                    return new RepositoryResult<UserInterfaceModel>(HttpStatusCode.OK) { identityResult = result };
                 }
             }
             catch (Exception ex)
@@ -219,6 +237,19 @@ namespace OrderStockManager.Repositories
         {
             try
             {
+                if (parameter == null)
+                {
+                    return null;
+                }
+                if (!parameter.Limit.HasValue)
+                {
+                    return null;
+                }
+                else if (parameter.Limit.GetValueOrDefault() <= 0)
+                {
+                    return null;
+                }
+
                 using (DataContext dbContext = DataContext.Create())
                 {
                     int maxcount = 0;
@@ -230,9 +261,111 @@ namespace OrderStockManager.Repositories
                     if (parameter.Enabled)
                         query = query.Where(x => x.Enabled == true);
                     maxcount = query.Count();
-                    maxpages = CountToPages(maxcount, parameter.Limit);
+                    maxpages = CountToPages(maxcount, parameter.Limit.GetValueOrDefault());
                     return new { count = maxcount, pages = maxpages };
                 }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+        public async Task<RepositoryResult<IList<string>>> GetRoleByUserIdAsync(int userId, bool isAdmin = false)
+        {
+            try
+            {
+                if (userId <= 0)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.BadRequest);
+                }
+
+                IList<string> roleList = await AppUserManager.GetRolesAsync(userId);
+                if (roleList == null)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.NotFound);
+                }
+
+                if (!isAdmin)
+                {
+                    roleList = roleList.Where(rl => rl != "admin").ToList();
+                }
+
+                return new RepositoryResult<IList<string>>(HttpStatusCode.OK, roleList);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<RepositoryResult<string>> GetRoleByUserIdAndRoleNameAsync(int userId, string roleName, bool isAdmin = false)
+        {
+            try
+            {
+                if (userId <= 0 || string.IsNullOrWhiteSpace(roleName))
+                {
+                    return new RepositoryResult<string>(HttpStatusCode.BadRequest);
+                }
+                var user = AppUserManager.FindById(userId);
+                if (user == null)
+                {
+                    return new RepositoryResult<string>(HttpStatusCode.NotFound);
+                }
+
+                IList<string> roleList = await AppUserManager.GetRolesAsync(user.Id);
+                if (!isAdmin)
+                {
+                    roleList = roleList.Where(rl => rl != "admin").ToList();
+                }
+
+                return new RepositoryResult<string>(HttpStatusCode.OK, roleList.FirstOrDefault(r => r == roleName));
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+        public async Task<RepositoryResult<IList<string>>> SetRoleByUserIdAsync(int userId, IList<string> roleList, bool isAdmin = false)
+        {
+            try
+            {
+                if (userId <= 0 || roleList == null)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.BadRequest);
+                }
+                var user = AppUserManager.FindById(userId);
+                if (user == null)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.NotFound);
+                }
+
+                var currentRoles = await AppUserManager.GetRolesAsync(user.Id);
+                if (!isAdmin)
+                    currentRoles = currentRoles.Where(rl => rl != "admin").ToList();
+
+                var rolesNotExists = roleList.Except(AppRoleManager.Roles.Select(x => x.Name)).ToArray();
+                if (rolesNotExists.Count() > 0)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.BadRequest, string.Format("ロール'{0}'は存在していません。", string.Join(",", rolesNotExists)));
+                }
+
+                IdentityResult removeResult = await AppUserManager.RemoveFromRolesAsync(user.Id, currentRoles.ToArray());
+                if (!removeResult.Succeeded)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.BadRequest, "権限の剥奪に失敗しました。") { identityResult = removeResult };
+                }
+
+                IdentityResult addResult = await AppUserManager.AddToRolesAsync(user.Id, roleList.ToArray());
+                if (!addResult.Succeeded)
+                {
+                    return new RepositoryResult<IList<string>>(HttpStatusCode.BadRequest, "権限の付与に失敗しました。") { identityResult = addResult };
+                }
+
+                return new RepositoryResult<IList<string>>(HttpStatusCode.OK, roleList);
             }
             catch (Exception ex)
             {

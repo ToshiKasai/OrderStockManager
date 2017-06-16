@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNet.Identity.Owin;
 using OrderStockManager.Infrastructure;
 using OrderStockManager.Models;
+using OrderStockManager.Models.Parameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,16 +31,13 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        protected int CountToPages(int count, int? countPerPage)
+        protected int CountToPages(int count, int countPerPage)
         {
             int result = 0;
-            if (countPerPage.HasValue)
+            result = (int)(count / countPerPage);
+            if ((int)(result % countPerPage) > 0)
             {
-                result = (int)(count / (int)countPerPage);
-                if ((int)(result % (int)countPerPage) > 0)
-                {
-                    result += 1;
-                }
+                result += 1;
             }
             return result;
         }

@@ -19,6 +19,9 @@ namespace OrderStockManager
             GlobalConfiguration.Configure(WebApiConfig.Register);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
+            MvcHandler.DisableMvcResponseHeader = true;
+            // ViewEngines.Engines.Clear();
+            // ViewEngines.Engines.Add(new RazorViewEngine());
 #if GLOBAL_DEBUG
             System.Diagnostics.Debug.WriteLine("Global : アプリケーションの開始");
             this.Application["Count"] = 0;
@@ -78,6 +81,7 @@ namespace OrderStockManager
 
         void Application_BeginRequest(object sender, EventArgs e)
         {
+            Response.Headers.Remove("Server");
 #if GLOBAL_DEBUG
             System.Diagnostics.Debug.WriteLine("Global : 要求の開始");
 #endif
@@ -95,6 +99,12 @@ namespace OrderStockManager
 #if GLOBAL_DEBUG
             System.Diagnostics.Debug.WriteLine("Global : 認証要求の発生");
 #endif
+        }
+
+        protected void Application_PreSendRequestHeaders()
+        {
+            // Response.Headers.Add("X-Version", "0.0.1");
+            // Response.Headers.Add("X-Author", "Minoru Takayama");
         }
     }
 }

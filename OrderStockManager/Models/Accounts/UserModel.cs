@@ -10,6 +10,7 @@ using System.Web;
 using OrderStockManager.Infrastructure;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using OrderStockManager.Services;
 
 namespace OrderStockManager.Models
 {
@@ -90,6 +91,9 @@ namespace OrderStockManager.Models
 
         #region サポート機能
         [NotMapped]
+        public ClaimsIdentity claims { get; set; }
+
+        [NotMapped]
         public DateTimeOffset LockoutEndDataUtc
         {
             get
@@ -118,13 +122,32 @@ namespace OrderStockManager.Models
             }
         }
 
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<UserModel, int> manager, string authenticationType)
+        public ClaimsIdentity GenerateUserIdentity(UserManager<UserModel, int> manager, string authenticationType)
         {
-            var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
-            // Add custom user claims here
-            return userIdentity;
+            this.claims = manager.CreateIdentity(this, authenticationType);
+            var stsId = ShortGuid.NewGuid();
+            this.claims.AddClaim(new Claim("sts:id", stsId, ClaimValueTypes.String));
+            var stsData = manager.GetSecurityStamp(Id);
+            this.claims.AddClaim(new Claim("sts:ds", CryptographService.CreateMacCode(stsData, stsId), ClaimValueTypes.String));
+
+            // 不要なクレームを削除
+            var delClaim = this.claims.Claims.Where(c => c.Type == "AspNet.Identity.SecurityStamp").SingleOrDefault();
+            if (delClaim != null)
+            {
+                this.claims.TryRemoveClaim(delClaim);
+            }
+            delClaim = this.claims.Claims.Where(c => c.Type == "http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider").SingleOrDefault();
+            if (delClaim != null)
+            {
+                this.claims.TryRemoveClaim(delClaim);
+            }
+            return this.claims;
         }
 
+        public Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<UserModel, int> manager, string authenticationType)
+        {
+            return Task.FromResult(GenerateUserIdentity(manager, authenticationType));
+        }
         #endregion
 
         #region データ連携

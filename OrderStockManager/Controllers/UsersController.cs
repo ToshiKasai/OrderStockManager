@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNet.Identity;
 using OrderStockManager.Models;
 using OrderStockManager.Models.Parameters;
 using OrderStockManager.Repositories;
@@ -10,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Routing;
 
 namespace OrderStockManager.Controllers
 {
@@ -17,6 +19,7 @@ namespace OrderStockManager.Controllers
     /// ユーザー情報管理用WEBAPI
     /// </summary>
     [Authorize]
+    [RoutePrefix("api/users")]
     public class UsersController : BaseApiController
     {
         private IUserRepository repository = null;
@@ -28,10 +31,18 @@ namespace OrderStockManager.Controllers
 
         #region ユーザー情報
         [HttpGet]
+        [Authorize(Roles = "admin,user")]
         public IHttpActionResult Get([FromUri]BaseParameterModel param)
         {
             try
             {
+                if (User.Identity.IsAuthenticated)
+                {
+                    var authtyp = User.Identity.AuthenticationType;
+                    var isAdmin = User.IsInRole("admin");
+                    var isUser = User.IsInRole("user");
+                }
+
                 var result = repository.GetUsersForInterface(param);
                 if (result == null)
                     return NotFound();
@@ -44,7 +55,8 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpGet]
-        public async Task<IHttpActionResult> GetAsync(int id, [FromUri]BaseParameterModel param)
+        [Route("{id}", Name = "GetUsersById")]
+        public async Task<IHttpActionResult> GetAsync(int id)
         {
             try
             {
@@ -52,9 +64,12 @@ namespace OrderStockManager.Controllers
                     return BadRequest();
 
                 var result = await repository.GetUserByIdForInterfaceAsync(id);
-                if (result == null)
-                    return NotFound();
-                return Ok(result);
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Content(result.Code, result.message);
+                }
+
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -64,19 +79,24 @@ namespace OrderStockManager.Controllers
 
         [HttpPost]
         [ValidationRequired(prefix = "value")]
+        [Authorize(Roles = "admin,user")]
         public async Task<IHttpActionResult> PostAsync([FromBody]UserInterfaceModel value)
         {
             try
             {
                 var result = await repository.CreateUserAsync(value);
-                if (!result.Succeeded)
+                if (result.Code != HttpStatusCode.Created)
                 {
                     // GetErrorResult(result);
-                    AddErrors(result);
-                    return BadRequest(ModelState.GetErrorsDelprefix("value"));
+                    AddErrors(result.identityResult);
+                    return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
-                var createdUser = repository.GetUserByNameForInterfaceAsync(value.UserName);
-                return Created(Request.RequestUri + "/" + createdUser.Id, createdUser);
+
+                result = await repository.GetUserByNameForInterfaceAsync(value.UserName);
+
+                var _UrlHelper = new UrlHelper(this.Request);
+                var Url = _UrlHelper.Link("GetUsersById", new { id = result.resultData.Id });
+                return Created(Url, result.resultData);
             }
             catch (Exception ex)
             {
@@ -86,6 +106,7 @@ namespace OrderStockManager.Controllers
 
         [HttpPut]
         [ValidationRequired(prefix = "value")]
+        [Route("{id}")]
         public async Task<IHttpActionResult> PutAsync(int id, [FromBody]UserInterfaceModel value)
         {
             try
@@ -94,13 +115,13 @@ namespace OrderStockManager.Controllers
                     return BadRequest();
 
                 var result = await repository.ModifyUserAsync(id, value);
-                if (!result.Succeeded)
+                if (result.Code != HttpStatusCode.OK)
                 {
-                    AddErrors(result);
-                    return BadRequest(ModelState.GetErrorsDelprefix("value"));
+                    AddErrors(result.identityResult);
+                    return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
-                var modifiedUser = repository.GetUserByIdForInterfaceAsync(id);
-                return Ok(modifiedUser);
+                var modifiedUser = await repository.GetUserByIdForInterfaceAsync(id);
+                return Ok(modifiedUser.resultData);
             }
             catch (Exception ex)
             {
@@ -109,6 +130,8 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpDelete]
+        [Route("{id}")]
+        [Authorize(Roles = "admin,user")]
         public async Task<IHttpActionResult> DeleteAsync(int id)
         {
             try
@@ -117,9 +140,10 @@ namespace OrderStockManager.Controllers
                     return BadRequest();
 
                 var result = await repository.DeleteUserAsync(id);
-                if (!result.Succeeded)
+                if (result.Code != HttpStatusCode.OK)
                 {
-                    return InternalServerError();
+                    return Content(result.Code, result.message);
+                    // return InternalServerError();
                 }
                 return StatusCode(HttpStatusCode.NoContent);
             }
@@ -130,12 +154,16 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpGet]
-        [Route("api/Users/Pages")]
+        [Route("pages")]
         public IHttpActionResult GetUserMaxPages([FromUri]BaseParameterModel param)
         {
             try
             {
                 var result = repository.GetUsersPages(param);
+                if (result == null)
+                {
+                    return BadRequest();
+                }
                 return Ok(result);
             }
             catch (Exception ex)
@@ -144,26 +172,25 @@ namespace OrderStockManager.Controllers
             }
         }
         #endregion
-#if false
 
         #region ユーザーロール情報
         [HttpGet]
-        [Route("api/Users/{id}/Roles")]
-        public async Task<IHttpActionResult> GetRoleList(int id, [FromUri]BaseApiParameterModel param)
+        [Route("{id}/roles")]
+        public async Task<IHttpActionResult> GetRoleListAsync(int id)
         {
             try
             {
                 if (id <= 0)
-                    return BadRequest(Messages.ApiIllegalParameter);
+                {
+                    return BadRequest();
+                }
 
-                IList<string> roleList = await UserManager.GetRolesAsync(id);
-                if (roleList == null)
-                    return NotFound();
-
-                if (!User.IsInRole("admin"))
-                    roleList = roleList.Where(rl => rl != "admin").ToList();
-
-                return Ok(roleList);
+                var result = await repository.GetRoleByUserIdAsync(id, User.IsInRole("admin"));
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Content(result.Code, result.message);
+                }
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -172,19 +199,23 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpGet]
-        [Route("api/Users/{id}/Roles/{role}")]
-        public async Task<IHttpActionResult> GetRole(int id, string role, [FromUri]BaseApiParameterModel param)
+        [Route("{id}/roles/{role}")]
+        [ValidationRequired(prefix = "roles")]
+        public async Task<IHttpActionResult> GetRoleAsync(int id, string role)
         {
             try
             {
-                if (id <= 0 || UserManager.FindById(id) == null)
-                    return BadRequest(Messages.ApiIllegalParameter);
+                if (id <= 0 || string.IsNullOrWhiteSpace(role))
+                {
+                    return BadRequest();
+                }
 
-                IList<string> roleList = await UserManager.GetRolesAsync(id);
-                if (!User.IsInRole("admin"))
-                    roleList = roleList.Where(rl => rl != "admin").ToList();
-
-                return Ok(roleList.FirstOrDefault(r => r == role));
+                var result = await repository.GetRoleByUserIdAndRoleNameAsync(id, role, User.IsInRole("admin"));
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Content(result.Code, result.message);
+                }
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -193,35 +224,25 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpPost]
-        [Route("api/Users/{id}/Roles")]
+        [Route("{id}/roles")]
+        [Authorize(Roles = "admin,user")]
         [ValidationRequired(prefix = "roles")]
-        public IHttpActionResult SetRoleList(int id, [FromBody]List<string> roles)
+        public async Task<IHttpActionResult> SetRoleListAsync(int id, [FromBody]List<string> roles)
         {
             try
             {
-                if (id <= 0 || UserManager.FindById(id) == null)
-                    return BadRequest(Messages.ApiIllegalParameter);
-
-                IList<string> roleList = UserManager.GetRoles(id);
-                if (!User.IsInRole("admin"))
-                    roleList = roleList.Where(rl => rl != "admin").ToList();
-
-                IdentityResult result;
-                result = UserManager.RemoveFromRoles(id, roleList.ToArray());
-                if (!result.Succeeded)
+                if (id <= 0 || roles == null)
                 {
-                    AddErrors(result);
-                    return BadRequest(ModelState.GetErrorsDelprefix("value"));
+                    return BadRequest();
                 }
 
-                result = UserManager.AddToRoles(id, roles.ToArray());
-                if (!result.Succeeded)
+                var result = await repository.SetRoleByUserIdAsync(id, roles, User.IsInRole("admin"));
+                if (result.Code != HttpStatusCode.OK)
                 {
-                    AddErrors(result);
-                    return BadRequest(ModelState.GetErrorsDelprefix("value"));
+                    AddErrors(result.identityResult);
+                    return Content(result.Code, ModelState.GetErrorsDelprefix("roles"));
                 }
-
-                return Ok(roles);
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -230,6 +251,7 @@ namespace OrderStockManager.Controllers
         }
         #endregion
 
+#if false
         #region ユーザーメーカー情報
         [HttpGet]
         [Route("api/Users/{id}/Makers")]
@@ -314,57 +336,6 @@ namespace OrderStockManager.Controllers
             catch (Exception ex)
             {
                 return InternalServerError(ex);
-            }
-        }
-        #endregion
-
-        #region サポート機能
-        private bool UpdateUserModel(UserModel user, UserApiModel model)
-        {
-            try
-            {
-                // ログインＩＤ
-                user.UserName = model.UserName;
-
-                // ユーザー名
-                user.Name = model.Name;
-
-                // アカウント有効期限
-                if (model.NewExpiration.HasValue)
-                {
-                    user.Expiration = ((DateTime)model.NewExpiration).ToLocalTime();
-                }
-
-                // パスワード変更スキップ回数
-                user.PasswordSkipCnt = model.PasswordSkipCnt;
-
-                // メールアドレス
-                user.Email = model.Email;
-
-                // メールアドレス確認済
-                user.EmailConfirmed = model.EmailConfirmed;
-
-                // ロックアウト終了日時
-                if (model.LockoutEndData.HasValue)
-                    user.LockoutEndData = (DateTime)model.LockoutEndData;
-
-                // ロックアウト許可
-                user.LockoutEnabled = model.LockoutEnabled;
-
-                // ログイン失敗回数
-                user.AccessFailedCount = model.AccessFailedCount;
-
-                // ユーザー使用許可
-                user.Enabled = model.Enabled;
-
-                // 削除済
-                user.Deleted = model.Deleted;
-
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
             }
         }
         #endregion

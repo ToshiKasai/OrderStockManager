@@ -11,8 +11,8 @@ using System.Web.Http;
 namespace OrderStockManager.Controllers
 {
     [Authorize(Roles = "admin")]
-    [RoutePrefix("api/roles")]
-    public class RolesController : BaseApiController
+    [RoutePrefix("api/old/roles")]
+    public class AccountRolesController : BaseApiController
     {
         [Route("{id}", Name = "GetRoleById")]
         public async Task<IHttpActionResult> GetRole(int Id)
