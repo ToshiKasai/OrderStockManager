@@ -18,7 +18,6 @@ namespace OrderStockManager.Providers
         /// </summary>
         private readonly string _issuer = string.Empty;
         private readonly string _algorithm = Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha512;
-        private IRSAKeyProvider _rsaProvider = null;
 
         public CustomJwtFormat(string issuer)
         {
@@ -39,14 +38,14 @@ namespace OrderStockManager.Providers
             var signingKey = new HmacSigningCredentials(keyByteArray);  // 32:HmacSha256 / 48:HmacSha384 / 64:HmacSha512
 
             // var securityKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(keyByteArray);
-            // var signingCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(securityKey, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature);
+            // var signingKey = new Microsoft.IdentityModel.Tokens.SigningCredentials(securityKey, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature);
 
             return signingKey;
         }
 
         private SigningCredentials CreateRsa()
         {
-            this._rsaProvider = new RSAKeyProvider();
+            var _rsaProvider = new RSAKeyProvider();
             string rsaKey = _rsaProvider.GetPrivateKey();
             if (rsaKey == null)
             {
@@ -55,9 +54,9 @@ namespace OrderStockManager.Providers
             var rsaProvider = new RSACryptoServiceProvider();
             rsaProvider.FromXmlString(rsaKey);
 
-            // var signingKey = new SigningCredentials(new RsaSecurityKey(rsaProvider), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256Signature, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.Sha256Digest);
+            var signingKey = new SigningCredentials(new RsaSecurityKey(rsaProvider), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256Signature, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.Sha256Digest);
             // var signingKey = new SigningCredentials(new RsaSecurityKey(rsaProvider), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha384Signature, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.Sha384Digest);
-            var signingKey = new SigningCredentials(new RsaSecurityKey(rsaProvider), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha512Signature, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.Sha512Digest);
+            // var signingKey = new SigningCredentials(new RsaSecurityKey(rsaProvider), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha512Signature);
 
             return signingKey;
         }

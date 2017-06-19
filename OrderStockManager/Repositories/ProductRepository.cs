@@ -8,28 +8,32 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace OrderStockManager.Repositories
 {
-    public class MakerRepository : BaseRepository, IMakerRepository, IDisposable
+    public class ProductRepository : BaseRepository, IProductRepository, IDisposable
     {
-        public MakerRepository()
+        public ProductRepository()
         {
             Mapper.Initialize(cfg =>
-                cfg.CreateMap<MakerModel, MakerInterfaceModel>()
+                cfg.CreateMap<ProductModel, ProductInterfaceModel>()
+                    .ForMember(d => d.MakerCode, o => o.MapFrom(s => s.MakerModel.Code))
+                    .ForMember(d => d.MakerName, o => o.MapFrom(s => s.MakerModel.Name))
             );
             // Mapper.AssertConfigurationIsValid();
         }
 
-        public IEnumerable<MakerInterfaceModel> GetMakersForInterface(BaseParameterModel parameter)
+        public IEnumerable<ProductInterfaceModel> GetProductsForInterface(CustomParameterModel parameter)
         {
             try
             {
                 using (DataContext dbContext = DataContext.Create())
+                using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
-                    IQueryable<MakerModel> query = QueryMakerModel(dbContext, parameter, true);
-                    var result = query.ProjectTo<MakerInterfaceModel>().ToList();
+                    IQueryable<ProductModel> query = QueryProductModel(dbContext, parameter, true);
+                    var result = query.ProjectTo<ProductInterfaceModel>().ToList();
                     if (result == null || result.Count == 0)
                     {
                         return null;
@@ -41,26 +45,26 @@ namespace OrderStockManager.Repositories
             {
                 throw ex;
             }
+
         }
 
-        public RepositoryResult<MakerInterfaceModel> GetMakerByIdForInterface(int makerId)
+        public RepositoryResult<ProductInterfaceModel> GetProductByIdForInterface(int productId)
         {
             try
             {
-                if (makerId <= 0)
+                if (productId <= 0)
                 {
-                    return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.BadRequest);
+                    return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.BadRequest);
                 }
 
                 using (DataContext dbContext = DataContext.Create())
                 {
-                    var result = dbContext.MakerModels.Where(x => x.Id == makerId).ProjectTo<MakerInterfaceModel>().SingleOrDefault();
+                    var result = dbContext.ProductModels.Where(x => x.Id == productId).ProjectTo<ProductInterfaceModel>().SingleOrDefault();
                     if (result == null)
                     {
-                        return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.NotFound);
+                        return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.NotFound);
                     }
-
-                    return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.OK, result);
+                    return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.OK, result);
                 }
             }
             catch (Exception ex)
@@ -69,35 +73,47 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public RepositoryResult<MakerInterfaceModel> ModifyMaker(int makerId, MakerInterfaceModel modifiedMaker)
+        public RepositoryResult<ProductInterfaceModel> ModifyProduct(int productId, ProductInterfaceModel modifiedProduct)
         {
             try
             {
-                if (makerId <= 0)
+                if (productId <= 0)
                 {
-                    return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.BadRequest);
+                    return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.BadRequest);
                 }
 
                 using (DataContext dbContext = DataContext.Create())
                 using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
-                    modifiedMaker.Id = makerId;
-                    var maker = dbContext.MakerModels.Where(m => m.Id == makerId).SingleOrDefault();
-                    if (maker == null)
+                    modifiedProduct.Id = productId;
+                    var product = dbContext.ProductModels.Where(m => m.Id == productId).SingleOrDefault();
+                    if (product == null)
                     {
                         tx.Rollback();
-                        return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.NotFound);
+                        return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.NotFound);
                     }
 
-                    maker.Enabled = modifiedMaker.Enabled;
-                    dbContext.Entry(maker).State = EntityState.Modified;
+                    product.PaletteQuantity = modifiedProduct.PaletteQuantity;
+                    product.CartonQuantity = modifiedProduct.CartonQuantity;
+                    product.CaseHeight = modifiedProduct.CaseHeight;
+                    product.CaseWidth = modifiedProduct.CaseWidth;
+                    product.CaseDepth = modifiedProduct.CaseDepth;
+                    product.CaseCapacity = modifiedProduct.CaseCapacity;
+                    product.LeadTime = modifiedProduct.LeadTime;
+                    product.OrderInterval = modifiedProduct.OrderInterval;
+                    product.OldProductModelId = modifiedProduct.OldProductModelId;
+                    product.Magnification = modifiedProduct.Magnification;
+                    product.MinimumOrderQuantity = modifiedProduct.MinimumOrderQuantity;
+                    product.Enabled = modifiedProduct.Enabled;
+                    dbContext.Entry(product).State = EntityState.Modified;
+
                     if (dbContext.SaveChanges() == 0)
                     {
                         tx.Rollback();
-                        return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.Conflict);
+                        return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.Conflict);
                     }
                     tx.Commit();
-                    return new RepositoryResult<MakerInterfaceModel>(HttpStatusCode.OK);
+                    return new RepositoryResult<ProductInterfaceModel>(HttpStatusCode.OK);
                 }
             }
             catch (Exception ex)
@@ -106,7 +122,7 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public object GetMakersPages(BaseParameterModel parameter)
+        public object GetProductsPages(CustomParameterModel parameter)
         {
             try
             {
@@ -127,8 +143,9 @@ namespace OrderStockManager.Repositories
                 {
                     int maxcount = 0;
                     int maxpages = 0;
-                    IQueryable<MakerModel> query = QueryMakerModel(dbContext, parameter);
+                    IQueryable<ProductModel> query = QueryProductModel(dbContext, parameter);
                     maxcount = query.Count();
+
                     maxpages = CountToPages(maxcount, parameter.Limit.GetValueOrDefault());
                     return new { count = maxcount, pages = maxpages };
                 }
@@ -139,34 +156,30 @@ namespace OrderStockManager.Repositories
             }
         }
 
-        public IEnumerable<MakerInterfaceModel> GetMakersByUserIdForInterface(int userId)
-        {
-            try
-            {
-                using (DataContext dbContext = DataContext.Create())
-                {
-                    var result = dbContext.UserMakerModels.Where(um => um.UserModelId == userId).Where(um => um.Deleted == false).Select(um => um.MakerModel).OrderBy(m => m.Id).ProjectTo<MakerInterfaceModel>().ToList();
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
-        }
-
         #region Internal
-        private IQueryable<MakerModel> QueryMakerModel(DataContext dbContext, BaseParameterModel parameter, bool pageControl = false)
+        private IQueryable<ProductModel> QueryProductModel(DataContext dbContext, CustomParameterModel parameter, bool pageControl = false)
         {
-            IQueryable<MakerModel> query = dbContext.MakerModels.OrderBy(x => x.Id);
+            IQueryable<ProductModel> query = dbContext.ProductModels.OrderBy(x => x.Id);
+            if (parameter.GroupId.HasValue)
+            {
+                query = dbContext.GroupProductModels.Where(gp => gp.Deleted == false).Where(gp => gp.GroupModelId == parameter.GroupId.GetValueOrDefault()).Select(gp => gp.ProductModel).OrderBy(p => p.Id);
+            }
+            else if (parameter.MakerId.HasValue)
+            {
+                query = dbContext.ProductModels.Where(p => p.MakerModelId == parameter.MakerId.GetValueOrDefault()).OrderBy(p => p.Id);
+            }
+            else
+            {
+                query = dbContext.ProductModels.OrderBy(p => p.Id);
+            }
+
             if (!parameter.Deleted)
             {
-                query = query.Where(x => x.Deleted == false);
+                query = query.Where(p => p.Deleted == false);
             }
             if (parameter.Enabled)
             {
-                query = query.Where(x => x.Enabled == true);
+                query = query.Where(p => p.Enabled == true);
             }
 
             if (pageControl)

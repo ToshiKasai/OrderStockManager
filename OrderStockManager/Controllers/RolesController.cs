@@ -43,7 +43,6 @@ namespace OrderStockManager.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        [Authorize(Roles = "admin,user")]
         public async Task<IHttpActionResult> GetAsync(int id)
         {
             try
@@ -67,6 +66,7 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ValidationRequired(prefix = "value")]
         public IHttpActionResult Post([FromBody]RoleInterfaceModel value)
         {
@@ -74,6 +74,7 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "admin")]
         [ValidationRequired(prefix = "value")]
         [Route("{id}")]
         public IHttpActionResult Put(int id, [FromBody]RoleInterfaceModel value)
@@ -82,6 +83,7 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Roles = "admin")]
         [Route("{id}")]
         public IHttpActionResult Delete(int id)
         {

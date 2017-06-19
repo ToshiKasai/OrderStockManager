@@ -9,24 +9,28 @@ using System.Web;
 
 namespace OrderStockManager.Models
 {
-    [Table("makers")]
-    public class MakerModel : BaseModel
+    [Table("orders")]
+    public class OrderModel : BaseModel
     {
         [Key, Column("id")]
         public int Id { get; set; }
 
-        [DisplayName("メーカーコード"), Column("code")]
+        [DisplayName("発注番号"), Column("order_no")]
         [Required, MaxLength(128)]
-        [Index("ui_code", IsUnique = true)]
-        public string Code { get; set; }
+        public string OrderNo { get; set; }
 
-        [DisplayName("メーカー名"), Column("name")]
-        [Required, MaxLength(256)]
-        public string Name { get; set; }
+        [DisplayName("発注日"), Column("order_date", TypeName = "Date")]
+        [DataType(DataType.Date), DisplayFormat(DataFormatString = "{0:yyyy/MM/dd}")]
+        public DateTime OrderDate { get; set; }
 
-        [DisplayName("使用許可"), Column("enabled")]
-        [DefaultValue(true)]
-        public bool Enabled { get; set; }
+        [DisplayName("商品ＩＤ"), Column("product_id")]
+        [Required]
+        [Index("idx_product_id")]
+        public int ProductModelId { get; set; }
+
+        [DisplayName("発注数量"), Column("quantity")]
+        [DefaultValue(0)]
+        public decimal Order { get; set; }
 
         #region 定型管理項目
         [DisplayName("削除済"), Column("deleted")]
@@ -44,11 +48,7 @@ namespace OrderStockManager.Models
 
         #region データ連携
         [JsonIgnore]
-        public virtual ICollection<ProductModel> ProductModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<UserMakerModel> UserMakerModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<GroupModel> GroupModels { get; set; }
+        public virtual ProductModel ProductModel { get; set; }
         #endregion
     }
 }

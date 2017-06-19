@@ -36,13 +36,6 @@ namespace OrderStockManager.Controllers
         {
             try
             {
-                if (User.Identity.IsAuthenticated)
-                {
-                    var authtyp = User.Identity.AuthenticationType;
-                    var isAdmin = User.IsInRole("admin");
-                    var isUser = User.IsInRole("user");
-                }
-
                 var result = repository.GetUsersForInterface(param);
                 if (result == null)
                     return NotFound();
@@ -251,21 +244,24 @@ namespace OrderStockManager.Controllers
         }
         #endregion
 
-#if false
         #region ユーザーメーカー情報
         [HttpGet]
-        [Route("api/Users/{id}/Makers")]
-        public IHttpActionResult GetMakerList(int id, [FromUri]BaseApiParameterModel param)
+        [Route("{id}/makers")]
+        public async Task<IHttpActionResult> GetMakerListAsync(int id)
         {
             try
             {
-                if (id <= 0 || UserManager.FindById(id) == null)
-                    return BadRequest(Messages.ApiIllegalParameter);
+                if (id <= 0)
+                {
+                    return BadRequest();
+                }
 
-                IList<MakerApiModel> makerList = dbContext.UserMakerModels
-                    .Where(um => um.UserModelId == id).Where(um => um.Deleted == false)
-                    .Select(um => um.MakerModel).OrderBy(m => m.Id).ProjectTo<MakerApiModel>().ToList();
-                return Ok(makerList);
+                var result = await repository.GetMakersByUserIdAsync(id);
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Content(result.Code, result.message);
+                }
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -274,64 +270,29 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpPost]
-        [Route("api/Users/{id}/Makers")]
+        [Route("{id}/makers")]
         [ValidationRequired(prefix = "MakerList")]
-        public IHttpActionResult SetMakerList(int id, [FromBody]List<MakerApiModel> MakerList)
+        public async Task<IHttpActionResult> SetMakerListAsync(int id, [FromBody]List<MakerInterfaceModel> MakerList)
         {
             try
             {
-                int count = 0;
-
-                if (id <= 0 || UserManager.FindById(id) == null)
-                    return BadRequest(Messages.ApiIllegalParameter);
-
-                dbContext.Database.ExecuteSqlCommand(ContextResources.IncrementResetUserMaker);
-
-                using (DbContextTransaction tx =
-                    dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                if (id <= 0)
                 {
-
-                    List<int> setMakerList = MakerList.Select(m => m.Id).OrderBy(x => x).ToList();
-                    IQueryable<UserMakerModel> userMakers = dbContext.UserMakerModels.Where(x => x.UserModelId == id).OrderBy(x => x.MakerModelId);
-                    List<int> makerIdList = dbContext.MakerModels.Select(x => x.Id).OrderBy(x => x).ToList<int>();
-
-                    foreach (int item in makerIdList)
-                    {
-                        UserMakerModel check = userMakers.Where(x => x.MakerModelId == item).FirstOrDefault();
-                        if (check == null && setMakerList.Contains(item))
-                        {
-                            count++;
-                            check = new UserMakerModel();
-                            check.UserModelId = id;
-                            check.MakerModelId = item;
-                            dbContext.UserMakerModels.Add(check);
-                        }
-                        else if (check != null && setMakerList.Contains(item) && check.Deleted == true)
-                        {
-                            count++;
-                            check.Deleted = false;
-                            dbContext.Entry(check).State = EntityState.Modified;
-                        }
-                        else if (check != null && !setMakerList.Contains(item) && check.Deleted == false)
-                        {
-                            count++;
-                            check.Deleted = true;
-                            dbContext.Entry(check).State = EntityState.Modified;
-                        }
-                    }
-#if false
-                    if (dbContext.SaveChanges() == count)
-                    {
-                        tx.Rollback();
-                        return Conflict();
-                    }
-#endif
-                    dbContext.SaveChanges();
-                    tx.Commit();
+                    return BadRequest();
                 }
-                dbContext.Database.ExecuteSqlCommand(ContextResources.IncrementResetUserMaker);
 
-                return Ok(MakerList);
+                var result = await repository.SetMakersByUSerIdAsync(id, MakerList);
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Content(result.Code, result.message);
+                }
+
+                result = await repository.GetMakersByUserIdAsync(id);
+                if (result.Code != HttpStatusCode.OK)
+                {
+                    return Ok();
+                }
+                return Ok(result.resultData);
             }
             catch (Exception ex)
             {
@@ -339,6 +300,5 @@ namespace OrderStockManager.Controllers
             }
         }
         #endregion
-#endif
     }
 }

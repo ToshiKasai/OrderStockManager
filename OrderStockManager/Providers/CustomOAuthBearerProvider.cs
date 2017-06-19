@@ -35,11 +35,11 @@ namespace OrderStockManager.Providers
                 string alg = (string)jwt.Header["alg"];
 
                 bool hmacMode = false;
-                if (hmacMode && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512Signature && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512 && alg != JwtAlgorithms.HMAC_SHA512)
+                if (hmacMode && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512Signature && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512)
                 {
                     context.Token = string.Empty;
                 }
-                if (!hmacMode && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256Signature && alg != JwtAlgorithms.RSA_SHA256 && alg!= Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256)
+                if (!hmacMode && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256Signature && alg!= Microsoft.IdentityModel.Tokens.SecurityAlgorithms.RsaSha256)
                 {
                     context.Token = string.Empty;
                 }

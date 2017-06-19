@@ -13,5 +13,6 @@ namespace OrderStockManager.Repositories
         RepositoryResult<MakerInterfaceModel> GetMakerByIdForInterface(int makerId);
         RepositoryResult<MakerInterfaceModel> ModifyMaker(int makerId, MakerInterfaceModel modifiedMaker);
         object GetMakersPages(BaseParameterModel parameter);
+        IEnumerable<MakerInterfaceModel> GetMakersByUserIdForInterface(int userId);
     }
 }

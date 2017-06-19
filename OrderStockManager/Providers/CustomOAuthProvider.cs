@@ -5,6 +5,7 @@ using Microsoft.Owin.Security.OAuth;
 using OrderStockManager.Infrastructure;
 using OrderStockManager.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace OrderStockManager.Providers
             string clientId, clientSecret;
             if(context.TryGetFormCredentials(out clientId, out clientSecret))
             {
+                // var typ = context.Parameters.Where(p => p.Key == "grant_type").Select(p => p.Value.FirstOrDefault()).FirstOrDefault();
                 var secret = ConfigurationManager.AppSettings["as:AudienceSecret"].Split(',');
                 if (secret.Contains(clientSecret))
                 {

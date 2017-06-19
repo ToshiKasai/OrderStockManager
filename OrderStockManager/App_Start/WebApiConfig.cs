@@ -2,6 +2,7 @@
 using OrderStockManager.Controllers;
 using OrderStockManager.Infrastructure;
 using OrderStockManager.Repositories;
+using OrderStockManager.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,11 @@ namespace OrderStockManager
             container.RegisterType<IUserRepository, UserRepository>(new HierarchicalLifetimeManager());
             container.RegisterType<IRoleRepository, RoleRepository>(new HierarchicalLifetimeManager());
             container.RegisterType<IMakerRepository, MakerRepository>(new HierarchicalLifetimeManager());
+            container.RegisterType<IProductRepository, ProductRepository>(new HierarchicalLifetimeManager());
+            container.RegisterType<IGroupRepository, GroupRepository>(new HierarchicalLifetimeManager());
+
+            container.RegisterType<ISalesViewService, SalesViewService>(new HierarchicalLifetimeManager());
+
             config.DependencyResolver = new UnityResolver(container);
 
             // Web API ルート

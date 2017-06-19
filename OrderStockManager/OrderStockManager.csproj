@@ -64,6 +64,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.Identity.Core.2.2.1\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
     </Reference>
@@ -132,7 +135,19 @@
       <HintPath>..\packages\MySql.Data.Entity.6.9.9\lib\net45\MySql.Data.Entity.EF6.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.3.0\lib\net40\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.3.0\lib\net40\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.3.0\lib\net40\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.3.0\lib\net40\NPOI.OpenXmlFormats.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -238,21 +253,32 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\ContainersController.cs" />
+    <Compile Include="Controllers\GroupsController.cs" />
     <Compile Include="Controllers\MakersController.cs" />
     <Compile Include="Controllers\Manage\AccountsController.cs" />
     <Compile Include="Controllers\BaseApiController.cs" />
     <Compile Include="Controllers\Manage\ClaimsController.cs" />
     <Compile Include="Controllers\Manage\AccountRolesController.cs" />
+    <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
+    <Compile Include="Controllers\SalesViewsController.cs" />
     <Compile Include="Controllers\SupportsController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Filters\EnableTagAttribute.cs" />
+    <Compile Include="Filters\ValidationRequiredAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\ApplicationRoleManager.cs" />
     <Compile Include="Infrastructure\ApplicationUserManager.cs" />
-    <Compile Include="Infrastructure\CompressionAttribute.cs" />
     <Compile Include="Infrastructure\DataContext.cs" />
+    <Compile Include="Models\ApplicationLogModel.cs" />
+    <Compile Include="Models\ContainerModel.cs" />
+    <Compile Include="Models\CurrentStockModel.cs" />
+    <Compile Include="Models\GroupModel.cs" />
+    <Compile Include="Models\GroupProductModel.cs" />
+    <Compile Include="Models\InvoiceModel.cs" />
     <Compile Include="Models\MakerModel.cs" />
     <Compile Include="Models\ModelStateDictionaryExtensions.cs" />
     <Compile Include="Infrastructure\RoleStore.cs" />
@@ -263,28 +289,64 @@
     <Compile Include="Models\Bindings\ChangePasswordBindingModel.cs" />
     <Compile Include="Models\Bindings\RoleBindingModels.cs" />
     <Compile Include="Models\ModelFactory.cs" />
+    <Compile Include="Models\OfficeModel.cs" />
+    <Compile Include="Models\OrderModel.cs" />
     <Compile Include="Models\Parameters\BaseParameterModel.cs" />
+    <Compile Include="Models\Parameters\ContainerInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\GroupInterfaceModel.cs" />
     <Compile Include="Models\Parameters\MakerInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\ProductInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\CustomParameterModel.cs" />
     <Compile Include="Models\Parameters\RoleInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\SalesInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\SalesOfficeInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\SalesTrendInterfaceModel.cs" />
+    <Compile Include="Models\Parameters\SalesViewInterfaceModel.cs" />
     <Compile Include="Models\Parameters\UserInterfaceModel.cs" />
+    <Compile Include="Models\ProductModel.cs" />
+    <Compile Include="Models\SalesModel.cs" />
+    <Compile Include="Models\SalesTrendModel.cs" />
+    <Compile Include="Models\SignInLogModel.cs" />
+    <Compile Include="Models\StockModel.cs" />
+    <Compile Include="Models\TradeModel.cs" />
+    <Compile Include="Models\UserMakerModel.cs" />
     <Compile Include="Providers\CustomIssuerSecurityTokenProvider.cs" />
     <Compile Include="Providers\CustomJwtFormat.cs" />
     <Compile Include="Providers\CustomOAuthBearerProvider.cs" />
     <Compile Include="Providers\CustomOAuthProvider.cs" />
     <Compile Include="Providers\CustomRefreshTokenProvider.cs" />
-    <Compile Include="Providers\IRSAKeyProvider.cs" />
     <Compile Include="Providers\RSAKeyProvider.cs" />
+    <Compile Include="Repositories\GroupRepository.cs" />
+    <Compile Include="Repositories\IGroupRepository.cs" />
     <Compile Include="Repositories\IMakerRepository.cs" />
+    <Compile Include="Repositories\IProductRepository.cs" />
     <Compile Include="Repositories\IRoleRepository.cs" />
+    <Compile Include="Repositories\RepositoryResource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RepositoryResource.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Services\BaseService.cs" />
+    <Compile Include="Services\ISalesViewExcelService.cs" />
+    <Compile Include="Services\ISalesViewService.cs" />
     <Compile Include="Repositories\MakerRepository.cs" />
+    <Compile Include="Repositories\ProductRepository.cs" />
     <Compile Include="Repositories\RepositoryResult.cs" />
     <Compile Include="Repositories\RoleRepository.cs" />
+    <Compile Include="Services\SalesViewExcelService.cs" />
+    <Compile Include="Services\SalesViewService.cs" />
     <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Repositories\BaseRepository.cs" />
     <Compile Include="Repositories\IUserRepository.cs" />
     <Compile Include="Services\CryptographService.cs" />
     <Compile Include="Services\EmailService.cs" />
+    <Compile Include="Services\ServiceResource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ServiceResource.resx</DependentUpon>
+    </Compile>
     <Compile Include="Services\ShortGuid.cs" />
+    <Compile Include="Services\SupportExcel.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Models\Accounts\RoleModel.cs" />
     <Compile Include="Models\Accounts\UserModel.cs" />
@@ -304,6 +366,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Repositories\RepositoryResource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>RepositoryResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Services\ServiceResource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServiceResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

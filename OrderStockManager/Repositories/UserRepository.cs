@@ -55,8 +55,9 @@ namespace OrderStockManager.Repositories
 
                 var result = query.ProjectTo<UserInterfaceModel>().ToList();
                 if (result == null || result.Count == 0)
+                {
                     return null;
-
+                }
                 return result;
             }
             catch (Exception ex)
@@ -372,6 +373,95 @@ namespace OrderStockManager.Repositories
                 throw ex;
             }
 
+        }
+
+        public async Task<RepositoryResult<IEnumerable<MakerInterfaceModel>>> GetMakersByUserIdAsync(int userId)
+        {
+            try
+            {
+                if (userId <= 0)
+                {
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.BadRequest);
+                }
+                var user = await AppUserManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.NotFound);
+                }
+                using (var repository = new MakerRepository())
+                {
+                    var makerlist = repository.GetMakersByUserIdForInterface(userId);
+                    if (makerlist == null)
+                    {
+                        return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.NotFound);
+                    }
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.OK, makerlist);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<RepositoryResult<IEnumerable<MakerInterfaceModel>>> SetMakersByUSerIdAsync(int userId, List<MakerInterfaceModel> setMakers)
+        {
+            try
+            {
+                if (userId <= 0)
+                {
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.BadRequest);
+                }
+                var user = await AppUserManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.NotFound);
+                }
+
+                using (DataContext dbContext = DataContext.Create())
+                {
+                    dbContext.Database.ExecuteSqlCommand(RepositoryResource.IncrementResetUserMaker);
+
+                    using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                    {
+                        var setMakerIds = setMakers.Select(m => m.Id).OrderBy(x => x).ToList();
+                        var makerIds = dbContext.MakerModels.Select(x => x.Id).OrderBy(x => x).ToList<int>();
+
+                        IQueryable<UserMakerModel> userMakers = dbContext.UserMakerModels.Where(x => x.UserModelId == userId).OrderBy(x => x.MakerModelId);
+
+                        foreach (int item in makerIds)
+                        {
+                            UserMakerModel check = userMakers.Where(x => x.MakerModelId == item).FirstOrDefault();
+                            if (check == null && setMakerIds.Contains(item))
+                            {
+                                check = new UserMakerModel();
+                                check.UserModelId = userId;
+                                check.MakerModelId = item;
+                                dbContext.UserMakerModels.Add(check);
+                            }
+                            else if (check != null && setMakerIds.Contains(item) && check.Deleted == true)
+                            {
+                                check.Deleted = false;
+                                dbContext.Entry(check).State = EntityState.Modified;
+                            }
+                            else if (check != null && !setMakerIds.Contains(item) && check.Deleted == false)
+                            {
+                                check.Deleted = true;
+                                dbContext.Entry(check).State = EntityState.Modified;
+                            }
+                        }
+                        dbContext.SaveChanges();
+                        tx.Commit();
+                    }
+                    dbContext.Database.ExecuteSqlCommand(RepositoryResource.IncrementResetUserMaker);
+
+                    return new RepositoryResult<IEnumerable<MakerInterfaceModel>>(HttpStatusCode.OK, setMakers);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         #region Internal

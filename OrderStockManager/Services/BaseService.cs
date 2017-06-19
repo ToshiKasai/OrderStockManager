@@ -1,16 +1,13 @@
 ﻿using Microsoft.AspNet.Identity.Owin;
 using OrderStockManager.Infrastructure;
-using OrderStockManager.Models;
-using OrderStockManager.Models.Parameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Web;
 
-namespace OrderStockManager.Repositories
+namespace OrderStockManager.Services
 {
-    public class BaseRepository : IDisposable
+    public class BaseService : IDisposable
     {
         private ApplicationUserManager _AppUserManager = null;
         private ApplicationRoleManager _AppRoleManager = null;
@@ -43,8 +40,8 @@ namespace OrderStockManager.Repositories
             return result;
         }
 
-        public BaseRepository() { }
-        
+        public BaseService() { }
+
         #region IDisposable Support
         private bool disposedValue = false;
 

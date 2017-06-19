@@ -9,24 +9,20 @@ using System.Web;
 
 namespace OrderStockManager.Models
 {
-    [Table("makers")]
-    public class MakerModel : BaseModel
+    [Table("offices")]
+    public class OfficeModel : BaseModel
     {
         [Key, Column("id")]
         public int Id { get; set; }
 
-        [DisplayName("メーカーコード"), Column("code")]
+        [DisplayName("事務所コード"), Column("code")]
         [Required, MaxLength(128)]
         [Index("ui_code", IsUnique = true)]
         public string Code { get; set; }
 
-        [DisplayName("メーカー名"), Column("name")]
+        [DisplayName("事務所名"), Column("name")]
         [Required, MaxLength(256)]
         public string Name { get; set; }
-
-        [DisplayName("使用許可"), Column("enabled")]
-        [DefaultValue(true)]
-        public bool Enabled { get; set; }
 
         #region 定型管理項目
         [DisplayName("削除済"), Column("deleted")]
@@ -44,11 +40,7 @@ namespace OrderStockManager.Models
 
         #region データ連携
         [JsonIgnore]
-        public virtual ICollection<ProductModel> ProductModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<UserMakerModel> UserMakerModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<GroupModel> GroupModels { get; set; }
+        public virtual ICollection<SalesModel> SalesModels { get; set; }
         #endregion
     }
 }

@@ -22,7 +22,7 @@ namespace OrderStockManager.Controllers
 
             try
             {
-                IRSAKeyProvider _prov = new RSAKeyProvider();
+                var _prov = new RSAKeyProvider();
                 return Ok(_prov.GetPublicKey());
             }
             catch
@@ -41,7 +41,7 @@ namespace OrderStockManager.Controllers
 
             try
             {
-                IRSAKeyProvider _prov = new RSAKeyProvider();
+                var _prov = new RSAKeyProvider();
                 _prov.DeleteKeys();
                 _prov.CreateKey();
                 return Ok();

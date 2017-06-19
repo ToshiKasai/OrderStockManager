@@ -11,8 +11,6 @@ namespace OrderStockManager.Infrastructure
 {
     public class DataContext: DbContext
     {
-        // private const string CacheKey = "__DataContext__";
-
         public DataContext()
             : base("DefaultConnection")
         {
@@ -24,13 +22,6 @@ namespace OrderStockManager.Infrastructure
         {
             return new DataContext();
         }
-
-        /*
-        public static bool HasContext
-        {
-            get { return HttpContext.Current.Items[CacheKey] != null; }
-        }
-        */
 
         public override int SaveChanges()
         {
@@ -46,18 +37,11 @@ namespace OrderStockManager.Infrastructure
             }
             catch (DbEntityValidationException ex)
             {
-                // Retrieve the error messages as a list of strings.
                 var errorMessages = ex.EntityValidationErrors
                         .SelectMany(x => x.ValidationErrors)
                         .Select(x => x.ErrorMessage);
-
-                // Join the list to a single string.
                 var fullErrorMessage = string.Join("; ", errorMessages);
-
-                // Combine the original exception message with the new one.
                 var exceptionMessage = string.Concat(ex.Message, " The validation errors are: ", fullErrorMessage);
-
-                // Throw a new DbEntityValidationException with the improved exception message.
                 throw new DbEntityValidationException(exceptionMessage, ex.EntityValidationErrors);
             }
             catch (Exception)
@@ -70,6 +54,23 @@ namespace OrderStockManager.Infrastructure
         public DbSet<RoleModel> RoleModels { get; set; }
         public DbSet<UserRoleModel> UserRoleModels { get; set; }
 
+        public DbSet<ContainerModel> ContainerModels { get; set; }
+        public DbSet<GroupModel> GroupModels { get; set; }
+        public DbSet<GroupProductModel> GroupProductModels { get; set; }
         public DbSet<MakerModel> MakerModels { get; set; }
+        public DbSet<OfficeModel> OfficeModels { get; set; }
+        public DbSet<ProductModel> ProductModels { get; set; }
+        public DbSet<SalesModel> SalesModels { get; set; }
+        public DbSet<SalesTrendModel> SalesTrendModels { get; set; }
+        public DbSet<StockModel> StockModels { get; set; }
+        public DbSet<TradeModel> TradeModels { get; set; }
+        public DbSet<UserMakerModel> UserMakerModels { get; set; }
+
+        public DbSet<SignInLogModel> SignInLogModels { get; set; }
+        public DbSet<ApplicationLogModel> ApplicationLogModel { get; set; }
+
+        public DbSet<CurrentStockModel> CurrentStockModels { get; set; }
+        public DbSet<InvoiceModel> InvoiceModels { get; set; }
+        public DbSet<OrderModel> OrderModels { get; set; }
     }
 }

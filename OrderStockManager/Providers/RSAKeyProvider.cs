@@ -9,7 +9,7 @@ using System.Web;
 
 namespace OrderStockManager.Providers
 {
-    public class RSAKeyProvider : IRSAKeyProvider
+    public class RSAKeyProvider
     {
         private CspParameters cp;
 

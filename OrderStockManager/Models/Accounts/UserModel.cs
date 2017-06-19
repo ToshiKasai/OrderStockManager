@@ -153,6 +153,15 @@ namespace OrderStockManager.Models
         #region データ連携
         [JsonIgnore]
         public virtual ICollection<UserRoleModel> UserRoleModels { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<UserMakerModel> UserMakerModels { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<SalesTrendModel> SalesTrendModels { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<SignInLogModel> SignInLogModels { get; set; }
         #endregion
     }
 }

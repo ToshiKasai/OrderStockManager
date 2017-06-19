@@ -23,5 +23,8 @@ namespace OrderStockManager.Repositories
         Task<RepositoryResult<IList<string>>> GetRoleByUserIdAsync(int userId, bool isAdmin = false);
         Task<RepositoryResult<string>> GetRoleByUserIdAndRoleNameAsync(int userId, string roleName, bool isAdmin = false);
         Task<RepositoryResult<IList<string>>> SetRoleByUserIdAsync(int userId, IList<string> roleList, bool isAdmin = false);
+
+        Task<RepositoryResult<IEnumerable<MakerInterfaceModel>>> GetMakersByUserIdAsync(int userId);
+        Task<RepositoryResult<IEnumerable<MakerInterfaceModel>>> SetMakersByUSerIdAsync(int userId, List<MakerInterfaceModel> setMakers);
     }
 }

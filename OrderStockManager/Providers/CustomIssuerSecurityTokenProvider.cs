@@ -29,7 +29,7 @@ namespace OrderStockManager.Providers
         {
             get
             {
-                IRSAKeyProvider _providor = new RSAKeyProvider();
+                var _providor = new RSAKeyProvider();
                 using (var rsaProvider = new RSACryptoServiceProvider())
                 {
                     rsaProvider.FromXmlString(_providor.GetPrivateKey());

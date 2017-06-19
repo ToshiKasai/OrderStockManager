@@ -9,24 +9,26 @@ using System.Web;
 
 namespace OrderStockManager.Models
 {
-    [Table("makers")]
-    public class MakerModel : BaseModel
+    [Table("application_logs")]
+    public class ApplicationLogModel : BaseModel
     {
         [Key, Column("id")]
         public int Id { get; set; }
 
-        [DisplayName("メーカーコード"), Column("code")]
-        [Required, MaxLength(128)]
-        [Index("ui_code", IsUnique = true)]
-        public string Code { get; set; }
+        [DisplayName("処理日"), Column("processing_date")]
+        [DataType(DataType.DateTime)]
+        public DateTime ProcessingDate { get; set; }
 
-        [DisplayName("メーカー名"), Column("name")]
-        [Required, MaxLength(256)]
-        public string Name { get; set; }
+        [DisplayName("処理名"), Column("process_name")]
+        [MaxLength(256)]
+        public string ProcessName { get; set; }
 
-        [DisplayName("使用許可"), Column("enabled")]
-        [DefaultValue(true)]
-        public bool Enabled { get; set; }
+        [DisplayName("ユーザーＩＤ"), Column("user_id")]
+        [Index("idx_user_id")]
+        public int UserModelId { get; set; }
+
+        [DisplayName("処理内容"), Column("message")]
+        public string Message { get; set; }
 
         #region 定型管理項目
         [DisplayName("削除済"), Column("deleted")]
@@ -44,11 +46,8 @@ namespace OrderStockManager.Models
 
         #region データ連携
         [JsonIgnore]
-        public virtual ICollection<ProductModel> ProductModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<UserMakerModel> UserMakerModels { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<GroupModel> GroupModels { get; set; }
+        [ForeignKey("UserModelId")]
+        public virtual UserModel UserModel { get; set; }
         #endregion
     }
 }

@@ -3,7 +3,6 @@ using OrderStockManager.Models.Parameters;
 using OrderStockManager.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -12,25 +11,23 @@ using System.Web.Http;
 namespace OrderStockManager.Controllers
 {
     [Authorize]
-    [RoutePrefix("api/makers")]
-    public class MakersController : BaseApiController
+    [RoutePrefix("api/products")]
+    public class ProductsController : BaseApiController
     {
-        private IMakerRepository repository = null;
-        private IGroupRepository groupRepository = null;
+        private IProductRepository repository = null;
 
-        public MakersController(IMakerRepository repository, IGroupRepository groupRepository)
+        public ProductsController(IProductRepository repository)
         {
             this.repository = repository;
-            this.groupRepository = groupRepository;
         }
 
-        #region メーカー情報
+        #region 商品情報
         [HttpGet]
-        public IHttpActionResult Get([FromUri]BaseParameterModel param)
+        public IHttpActionResult Get([FromUri]CustomParameterModel param)
         {
             try
             {
-                var result = repository.GetMakersForInterface(param);
+                var result = repository.GetProductsForInterface(param);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -52,7 +49,7 @@ namespace OrderStockManager.Controllers
                     return BadRequest();
                 }
 
-                var result = repository.GetMakerByIdForInterface(id);
+                var result = repository.GetProductByIdForInterface(id);
                 if (result.Code != HttpStatusCode.OK)
                 {
                     return Content(result.Code, result.message);
@@ -67,7 +64,7 @@ namespace OrderStockManager.Controllers
 
         [HttpPost]
         [ValidationRequired(prefix = "value")]
-        public IHttpActionResult Post([FromBody]MakerInterfaceModel value)
+        public IHttpActionResult Post([FromBody]ProductInterfaceModel value)
         {
             return StatusCode(HttpStatusCode.MethodNotAllowed);
         }
@@ -75,7 +72,7 @@ namespace OrderStockManager.Controllers
         [HttpPut]
         [ValidationRequired(prefix = "value")]
         [Route("{id}")]
-        public IHttpActionResult Put(int id, [FromBody]MakerInterfaceModel value)
+        public IHttpActionResult Put(int id, [FromBody]ProductInterfaceModel value)
         {
             try
             {
@@ -84,12 +81,12 @@ namespace OrderStockManager.Controllers
                     return BadRequest();
                 }
 
-                var result = repository.ModifyMaker(id, value);
+                var result = repository.ModifyProduct(id, value);
                 if (result.Code != HttpStatusCode.OK)
                 {
                     return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
-                var model = repository.GetMakerByIdForInterface(id);
+                var model = repository.GetProductByIdForInterface(id);
                 return Ok(model);
             }
             catch (Exception ex)
@@ -107,11 +104,11 @@ namespace OrderStockManager.Controllers
 
         [HttpGet]
         [Route("pages")]
-        public IHttpActionResult GetMakerMaxPages([FromUri]BaseParameterModel param)
+        public IHttpActionResult GetProductMaxPages([FromUri]CustomParameterModel param)
         {
             try
             {
-                var result = repository.GetMakersPages(param);
+                var result = repository.GetProductsPages(param);
                 if (result == null)
                 {
                     return BadRequest();
@@ -125,38 +122,20 @@ namespace OrderStockManager.Controllers
         }
         #endregion
 
-        #region グループ情報
+        #region 商品別データ
         [HttpGet]
-        [Route("{id}/groups")]
-        public IHttpActionResult GetGroupList(int id, [FromUri]BaseParameterModel param)
+        [Route("{id}/salesviews/{year}")]
+        public IHttpActionResult GetSalesViews(int id, int year, [FromUri]BaseParameterModel param)
         {
-            try
-            {
-                if (id <= 0)
-                {
-                    return BadRequest();
-                }
+            return StatusCode(HttpStatusCode.MethodNotAllowed);
+        }
 
-                var maker = repository.GetMakerByIdForInterface(id);
-                if (maker.Code != HttpStatusCode.OK)
-                {
-                    return BadRequest();
-                }
-
-                var parameter = new CustomParameterModel();
-                parameter.MakerId = id;
-                parameter.Deleted = param.Deleted;
-                var result = groupRepository.GetGroupsForInterface(parameter);
-
-                if (result == null || result.Count() == 0)
-                    return NotFound();
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
+        [HttpPost]
+        [Route("{id}/salesviews/")]
+        [ValidationRequired(prefix = "item")]
+        public IHttpActionResult SetSalesViews([FromBody]SalesViewInterfaceModel item)
+        {
+            return StatusCode(HttpStatusCode.MethodNotAllowed);
         }
         #endregion
     }
