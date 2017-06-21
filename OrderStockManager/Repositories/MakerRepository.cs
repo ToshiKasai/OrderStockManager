@@ -14,12 +14,8 @@ namespace OrderStockManager.Repositories
 {
     public class MakerRepository : BaseRepository, IMakerRepository, IDisposable
     {
-        public MakerRepository()
+        public MakerRepository() : base()
         {
-            Mapper.Initialize(cfg =>
-                cfg.CreateMap<MakerModel, MakerInterfaceModel>()
-            );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public IEnumerable<MakerInterfaceModel> GetMakersForInterface(BaseParameterModel parameter)

@@ -29,9 +29,6 @@ namespace OrderStockManager
     {
         public void Configuration(IAppBuilder app)
         {
-            var _prov = new RSAKeyProvider();
-            _prov.DeleteKeys();
-
             HttpConfiguration httpConfig = new HttpConfiguration();
             
             ConfigureOAuthTokenGeneration(app);

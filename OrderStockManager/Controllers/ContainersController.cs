@@ -75,7 +75,7 @@ namespace OrderStockManager.Controllers
         }
 
         [HttpPut]
-        [Route("{id")]
+        [Route("{id}")]
         public IHttpActionResult Put(int id, [FromBody]string value)
         {
             return StatusCode(HttpStatusCode.MethodNotAllowed);

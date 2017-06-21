@@ -15,14 +15,8 @@ namespace OrderStockManager.Repositories
 {
     public class ProductRepository : BaseRepository, IProductRepository, IDisposable
     {
-        public ProductRepository()
+        public ProductRepository() : base()
         {
-            Mapper.Initialize(cfg =>
-                cfg.CreateMap<ProductModel, ProductInterfaceModel>()
-                    .ForMember(d => d.MakerCode, o => o.MapFrom(s => s.MakerModel.Code))
-                    .ForMember(d => d.MakerName, o => o.MapFrom(s => s.MakerModel.Name))
-            );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public IEnumerable<ProductInterfaceModel> GetProductsForInterface(CustomParameterModel parameter)

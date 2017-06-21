@@ -17,14 +17,8 @@ namespace OrderStockManager.Repositories
 {
     public class UserRepository : BaseRepository, IUserRepository, IDisposable
     {
-        public UserRepository()
+        public UserRepository() : base()
         {
-            Mapper.Initialize(cfg =>
-            cfg.CreateMap<UserModel, UserInterfaceModel>()
-                .ForMember(d => d.NewExpiration, o => o.Ignore())
-                .ForMember(d => d.NewPassword, o => o.Ignore())
-                );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public IEnumerable<UserInterfaceModel> GetUsersForInterface(BaseParameterModel parameter)

@@ -1,0 +1,48 @@
+﻿body {
+    margin: 0
+}
+
+.v-transition {
+    transition: all 0.7s ease;
+    transform: scale3d(1, 1, 1);
+}
+
+.v-enter,
+.v-leave {
+    transform: scale3d(0, 0, 1);
+    opacity: 0;
+}
+
+.fade {
+    &-enter-active,
+    &-leave-active {
+        transition: opacity 1.5s
+    }
+
+    &-enter,
+    &-leave-to {
+        opacity: 0
+    }
+
+    &-move {
+        transition: transform 1s;
+    }
+}
+
+
+/* enter、 leave アニメーションで異なる間隔やタイミング関数を利用することができます */
+
+.slide-fade-enter-active {
+    transition: all .3s ease;
+}
+
+.slide-fade-leave-active {
+    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+
+.slide-fade-enter,
+.slide-fade-leave-to
+/* .slide-fade-leave-active for <2.1.8 */ {
+    transform: translateX(10px);
+    opacity: 0;
+}

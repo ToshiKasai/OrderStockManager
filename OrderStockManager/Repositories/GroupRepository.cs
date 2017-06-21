@@ -14,15 +14,8 @@ namespace OrderStockManager.Repositories
 {
     public class GroupRepository : BaseRepository, IGroupRepository, IDisposable
     {
-        public GroupRepository()
+        public GroupRepository() : base()
         {
-            Mapper.Initialize(cfg =>
-                cfg.CreateMap<GroupModel, GroupInterfaceModel>()
-                    .ForMember(d => d.MakerCode, o => o.MapFrom(s => s.MakerModel.Code))
-                    .ForMember(d => d.MakerName, o => o.MapFrom(s => s.MakerModel.Name))
-                    .ForMember(d => d.ContainerName, o => o.MapFrom(s => s.ContainerModel.Name))
-            );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public IEnumerable<GroupInterfaceModel> GetGroupsForInterface(CustomParameterModel parameter)

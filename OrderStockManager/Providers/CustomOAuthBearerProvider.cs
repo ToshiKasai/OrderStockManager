@@ -18,21 +18,21 @@ namespace OrderStockManager.Providers
     {
         public override Task RequestToken(OAuthRequestTokenContext context)
         {
-            if (!string.IsNullOrEmpty(context.Token))
+            if (!string.IsNullOrEmpty(context.Token) && context.Token != "null")
             {
                 var handler = new JwtSecurityTokenHandler();
                 JwtSecurityToken jwt = (JwtSecurityToken)handler.ReadToken(context.Token);
 
-                if (!jwt.Header.ContainsKey("typ"))
+                if (!jwt.Header.ContainsKey(JwtHeaderParameterNames.Typ))
                 {
                     context.Token = string.Empty;
                 }
-                string typ = (string)jwt.Header["typ"];
+                string typ = (string)jwt.Header[JwtHeaderParameterNames.Typ];
                 if (typ != "JWT" && typ != "urn:ietf:params:oauth:token-type:jwt")
                 {
                     context.Token = string.Empty;
                 }
-                string alg = (string)jwt.Header["alg"];
+                string alg = (string)jwt.Header[JwtHeaderParameterNames.Alg];
 
                 bool hmacMode = false;
                 if (hmacMode && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512Signature && alg != Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha512)

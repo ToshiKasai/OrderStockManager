@@ -129,6 +129,8 @@ namespace OrderStockManager.Models
             this.claims.AddClaim(new Claim("sts:id", stsId, ClaimValueTypes.String));
             var stsData = manager.GetSecurityStamp(Id);
             this.claims.AddClaim(new Claim("sts:ds", CryptographService.CreateMacCode(stsData, stsId), ClaimValueTypes.String));
+            this.claims.AddClaim(new Claim(System.IdentityModel.Tokens.JwtRegisteredClaimNames.AuthTime, DateTime.UtcNow.Ticks.ToString(), ClaimValueTypes.Integer64));
+            this.claims.AddClaim(new Claim("name", this.Name, ClaimValueTypes.String));
 
             // 不要なクレームを削除
             var delClaim = this.claims.Claims.Where(c => c.Type == "AspNet.Identity.SecurityStamp").SingleOrDefault();

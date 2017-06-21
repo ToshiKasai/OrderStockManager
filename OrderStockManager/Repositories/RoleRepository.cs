@@ -17,12 +17,8 @@ namespace OrderStockManager.Repositories
 {
     public class RoleRepository : BaseRepository, IRoleRepository, IDisposable
     {
-        public RoleRepository()
+        public RoleRepository() : base()
         {
-            Mapper.Initialize(cfg =>
-                cfg.CreateMap<RoleModel, RoleInterfaceModel>()
-            );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public IEnumerable<RoleInterfaceModel> GetRolesForInterface(BaseParameterModel parameter, bool isAdmin = false)

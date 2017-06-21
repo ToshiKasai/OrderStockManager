@@ -247,7 +247,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
+    <Content Include="rollup.config.js" />
+    <Content Include="VueSrc\app.js" />
+    <Content Include="VueSrc\libraries\dateToFormatString.js" />
+    <Content Include="VueSrc\libraries\generateUUID.js" />
+    <Content Include="VueSrc\routes.js" />
+    <Content Include="VueSrc\store\getters.js" />
+    <Content Include="VueSrc\store\index.js" />
+    <Content Include="VueSrc\store\maintenance\getters.js" />
+    <Content Include="VueSrc\store\maintenance\index.js" />
+    <Content Include="VueSrc\store\maintenance\mutations.js" />
+    <Content Include="VueSrc\store\mutations.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -255,11 +267,9 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ContainersController.cs" />
     <Compile Include="Controllers\GroupsController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MakersController.cs" />
-    <Compile Include="Controllers\Manage\AccountsController.cs" />
     <Compile Include="Controllers\BaseApiController.cs" />
-    <Compile Include="Controllers\Manage\ClaimsController.cs" />
-    <Compile Include="Controllers\Manage\AccountRolesController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\SalesViewsController.cs" />
@@ -357,6 +367,16 @@
   <ItemGroup>
     <Content Include="Views\web.config" />
     <Content Include="packages.config" />
+    <Content Include="VueSrc\app.vue" />
+    <Content Include="package.json" />
+    <Content Include="VueSrc\common.scss" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="VueSrc\wellcome.vue" />
+    <Content Include="VueSrc\components\signin.vue" />
+    <Content Include="VueSrc\components\mainmenu.vue" />
+    <Content Include="VueSrc\components\maintenance.vue" />
+    <Content Include="VueSrc\components\maintenance\users.vue" />
+    <Content Include="VueSrc\components\maintenance\maintemenu.vue" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -366,6 +386,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Scripts\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Repositories\RepositoryResource.resx">

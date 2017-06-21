@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.Identity.Owin;
+﻿using AutoMapper;
+using Microsoft.AspNet.Identity.Owin;
 using OrderStockManager.Infrastructure;
 using OrderStockManager.Models;
 using OrderStockManager.Models.Parameters;
@@ -43,8 +44,27 @@ namespace OrderStockManager.Repositories
             return result;
         }
 
-        public BaseRepository() { }
-        
+        public BaseRepository()
+        {
+            Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<GroupModel, GroupInterfaceModel>()
+                    .ForMember(d => d.MakerCode, o => o.MapFrom(s => s.MakerModel.Code))
+                    .ForMember(d => d.MakerName, o => o.MapFrom(s => s.MakerModel.Name))
+                    .ForMember(d => d.ContainerName, o => o.MapFrom(s => s.ContainerModel.Name));
+                cfg.CreateMap<MakerModel, MakerInterfaceModel>();
+                cfg.CreateMap<ProductModel, ProductInterfaceModel>()
+                    .ForMember(d => d.MakerCode, o => o.MapFrom(s => s.MakerModel.Code))
+                    .ForMember(d => d.MakerName, o => o.MapFrom(s => s.MakerModel.Name));
+                cfg.CreateMap<RoleModel, RoleInterfaceModel>();
+                cfg.CreateMap<UserModel, UserInterfaceModel>()
+                    .ForMember(d => d.NewExpiration, o => o.Ignore())
+                    .ForMember(d => d.NewPassword, o => o.Ignore());
+            }
+            );
+            Mapper.AssertConfigurationIsValid();
+        }
+
         #region IDisposable Support
         private bool disposedValue = false;
 
