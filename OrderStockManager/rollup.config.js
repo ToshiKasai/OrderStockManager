@@ -6,6 +6,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import nodeGlobals from 'rollup-plugin-node-globals';
 import buble from 'rollup-plugin-buble';
 import uglify from 'rollup-plugin-uglify';
+import postcss from 'rollup-plugin-postcss';
 
 const outdir = "Scripts/";
 
@@ -30,6 +31,7 @@ export default {
                 pretty: false
             }
         }),
+        postcss(),
         nodeResolve({
             jsnext: true,
             browser: true

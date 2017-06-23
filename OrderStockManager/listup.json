@@ -1,0 +1,22 @@
+{
+    "test": {
+        "appcss": {
+            "file": "Scripts/app.css",
+            "mtime": "1498186695271",
+            "md5": "eacf54b9c79fb93a996b13d879f3616b",
+            "timehash": "ef61752f10f2ad0acbcf1745d01ac1c2"
+        },
+        "appjs": {
+            "file": "Scripts/app.js",
+            "mtime": "1498186695278",
+            "md5": "13a831bdf90c46eba642ce160e5c7aff",
+            "timehash": "94a5dad4c4492e71828b2a941490b0a3"
+        },
+        "commoncss": {
+            "file": "Scripts/common.css",
+            "mtime": "1498099562709",
+            "md5": "70ac5431a336fe9224fa3b69028d34e6",
+            "timehash": "ea23cb7af8e0405a39a137ee7c14880c"
+        }
+    }
+}

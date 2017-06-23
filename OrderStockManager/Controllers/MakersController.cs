@@ -90,7 +90,7 @@ namespace OrderStockManager.Controllers
                     return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
                 var model = repository.GetMakerByIdForInterface(id);
-                return Ok(model);
+                return Ok(model.resultData);
             }
             catch (Exception ex)
             {

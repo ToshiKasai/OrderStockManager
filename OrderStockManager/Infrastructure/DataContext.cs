@@ -67,7 +67,8 @@ namespace OrderStockManager.Infrastructure
         public DbSet<UserMakerModel> UserMakerModels { get; set; }
 
         public DbSet<SignInLogModel> SignInLogModels { get; set; }
-        public DbSet<ApplicationLogModel> ApplicationLogModel { get; set; }
+        public DbSet<ApplicationLogModel> ApplicationLogModels { get; set; }
+        public DbSet<DashboardModel> DashboardModels { get; set; }
 
         public DbSet<CurrentStockModel> CurrentStockModels { get; set; }
         public DbSet<InvoiceModel> InvoiceModels { get; set; }

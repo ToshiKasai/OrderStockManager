@@ -249,7 +249,12 @@
   <ItemGroup>
     <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
+    <Content Include="libStamps.js" />
     <Content Include="rollup.config.js" />
+    <Content Include="Scripts\app.css" />
+    <Content Include="Scripts\app.js" />
+    <Content Include="Scripts\common.css" />
+    <Content Include="Scripts\css\index.css" />
     <Content Include="VueSrc\app.js" />
     <Content Include="VueSrc\libraries\dateToFormatString.js" />
     <Content Include="VueSrc\libraries\generateUUID.js" />
@@ -266,6 +271,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ContainersController.cs" />
+    <Compile Include="Controllers\DashboardsController.cs" />
     <Compile Include="Controllers\GroupsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MakersController.cs" />
@@ -286,6 +292,7 @@
     <Compile Include="Models\ApplicationLogModel.cs" />
     <Compile Include="Models\ContainerModel.cs" />
     <Compile Include="Models\CurrentStockModel.cs" />
+    <Compile Include="Models\DashboardModel.cs" />
     <Compile Include="Models\GroupModel.cs" />
     <Compile Include="Models\GroupProductModel.cs" />
     <Compile Include="Models\InvoiceModel.cs" />
@@ -370,13 +377,18 @@
     <Content Include="VueSrc\app.vue" />
     <Content Include="package.json" />
     <Content Include="VueSrc\common.scss" />
-    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\index.cshtml" />
+    <None Include="Views\Home\Index._cshtml" />
     <Content Include="VueSrc\wellcome.vue" />
     <Content Include="VueSrc\components\signin.vue" />
     <Content Include="VueSrc\components\mainmenu.vue" />
     <Content Include="VueSrc\components\maintenance.vue" />
     <Content Include="VueSrc\components\maintenance\users.vue" />
     <Content Include="VueSrc\components\maintenance\maintemenu.vue" />
+    <Content Include="Scripts\css\fonts\element-icons.ttf" />
+    <Content Include="Scripts\css\fonts\element-icons.woff" />
+    <Content Include="listup.json" />
+    <Content Include="ViewPug\Home\index.pug" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -386,7 +398,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Scripts\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Repositories\RepositoryResource.resx">
