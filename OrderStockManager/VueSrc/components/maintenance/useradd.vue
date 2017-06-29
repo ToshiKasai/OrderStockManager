@@ -1,6 +1,6 @@
 <template lang="pug">
 div.basemargin
-  el-form(:model="user" label-position="right" label-width="150px" :rules="checkRules" ref="userForm" v-loading.body="loading" element-loading-text="処理中")
+  el-form(:model="user" label-position="right" label-width="150px" :rules="checkRules" ref="userForm")
     el-form-item(label="サインインＩＤ" prop="userName")
       el-input(type="text" v-model="user.userName")
     el-form-item(label="ユーザー名" prop="name")
@@ -21,7 +21,6 @@ export default {
   },
   data() {
     return {
-      loading: false,
       user: {
         id: 0,
         userName: null,
@@ -57,20 +56,18 @@ export default {
       }
     }
   },
-  computed: {
-  },
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.loading = true
+          this.$store.dispatch('nowLoadingMainte', 'ユーザー情報登録中')
           this.$store.dispatch('maintenance/addUser', this.user).then((response) => {
             this.$notify({ title: '登録完了', message: 'ユーザーの登録を行いました' })
-            this.loading = false
+            this.$store.dispatch('endLoading')
             this.$router.go(-1)
           }).catch((error) => {
             this.$notify.error({ title: 'Error', message: error.message })
-            this.loading = false
+            this.$store.dispatch('endLoading')
           })
         } else {
           return false
@@ -84,7 +81,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/useradd/', name: 'ユーザー登録' }
+        { path: '/mainte/users/add', name: 'ユーザー登録' }
       )
     })
   }

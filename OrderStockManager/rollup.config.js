@@ -36,15 +36,10 @@ export default {
             jsnext: true,
             browser: true
         }),
-        commonjs(/*{
-            namedExports: {
-                'node_modules/js-cookie/src/js.cookie.js': ['Cookies']
-            }
-        }*/),
+        commonjs(/*{ namedExports: { 'node_modules/js-cookie/src/js.cookie.js': ['Cookies'] } }*/),
         nodeGlobals(),
         buble()
-        // ,
-        // uglify()
+        // , uglify()
     ],
     format: 'iife'
 };

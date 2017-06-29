@@ -2,15 +2,15 @@
     "test": {
         "appcss": {
             "file": "Scripts/app.css",
-            "mtime": "1498703006135",
-            "md5": "02bbfa6eb39f909ec32db725474bace0",
-            "timehash": "8526fdebf06cf550f6d0dcc0cc5df355"
+            "mtime": "1498724293372",
+            "md5": "490c68f3af0b451d0fa38d2ea95f2e78",
+            "timehash": "cf985d04ce6912a1eced0196dbe15d61"
         },
         "appjs": {
             "file": "Scripts/app.js",
-            "mtime": "1498703006135",
-            "md5": "910603db5debb3bc8cc8f0b1b75cfa9c",
-            "timehash": "8526fdebf06cf550f6d0dcc0cc5df355"
+            "mtime": "1498724293373",
+            "md5": "bf3ee49f7557100d7e52005126239713",
+            "timehash": "dfa074c4f556719e86409917f4027b52"
         },
         "commoncss": {
             "file": "Scripts/common.css",

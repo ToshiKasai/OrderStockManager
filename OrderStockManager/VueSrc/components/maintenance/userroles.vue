@@ -24,47 +24,36 @@ export default {
   },
   methods: {
     getUser() {
-      this.loading = true
-      this.$store.dispatch('maintenance/getUser', this.id).then((response) => {
-        var item = response.data
-        this.user = this.minotaka.makeSingleType(item, "object")
-        this.loading = false
+      return this.$store.dispatch('maintenance/getUser', this.id).then((response) => {
+        this.user = this.minotaka.makeSingleType(response.data, "object")
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     getUserRoles() {
-      this.loading = true
-      this.$store.dispatch('maintenance/getUserRoles', this.id).then((response) => {
-        var items = response.data
-        this.roles = this.minotaka.makeArray(items, "string")
+      return this.$store.dispatch('maintenance/getUserRoles', this.id).then((response) => {
+        this.roles = this.minotaka.makeArray(response.data, "string")
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     getRoles() {
-      this.loading = true
       this.roleList = []
-      this.$store.dispatch('maintenance/getRoleList').then((response) => {
-        var items = this.minotaka.makeArray(response.data)
-        this.roleList = items
-        this.loading = false
+      return this.$store.dispatch('maintenance/getRoleList').then((response) => {
+        this.roleList = this.minotaka.makeArray(response.data)
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     submitForm() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中')
       this.$store.dispatch('maintenance/setUserRoles', { id: this.id, roles: this.roles }).then((response) => {
         this.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' })
-        this.loading = false
+        this.$store.dispatch('endLoading')
         this.$router.go(-1)
       }).catch((error) => {
+        this.$store.dispatch('endLoading')
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     cancel() {
@@ -73,12 +62,16 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      vm.getUser(),
-        vm.getRoles(),
-        vm.getUserRoles(),
-        vm.$store.commit('changeBreadcrumb',
-          { path: '/mainte/userroles/' + vm.id, name: 'ユーザー権限' }
-        )
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
+      vm.getUser()
+      vm.getRoles().then(() => {
+        vm.getUserRoles().then(() => {
+          vm.$store.dispatch('endLoading')
+        })
+      })
+      vm.$store.commit('changeBreadcrumb',
+        { path: '/mainte/users/' + vm.id + '/roles', name: 'ユーザー権限' }
+      )
     })
   }
 }

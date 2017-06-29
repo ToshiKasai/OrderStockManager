@@ -105,7 +105,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/useredit/' + vm.id, name: 'ユーザー編集' },
+        { path: '/mainte/users/' + vm.id + '/edit', name: 'ユーザー編集' },
         vm.getUser()
       )
     })

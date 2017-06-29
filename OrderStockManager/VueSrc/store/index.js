@@ -22,7 +22,11 @@ export default new Vuex.Store({
   mutations,
   getters: getters,
   state: {
-    breadlist: []
+    breadlist: [],
+    fullLoadingShow: false,
+    loadingShow: false,
+    mainteLoadingShow: false,
+    loadingMessage: null
   },
   plugins: [
     createPersistedState({ storage: window.sessionStorage })

@@ -17,22 +17,23 @@ import Products from './components/maintenance/products.vue'
 
 export default [
   { path: '/', component: Wellcome },
-  { path: '/signin', component: SignIn },
-  { path: '/menu', component: Menu },
+  { path: '/signin', component: SignIn, props: (route) => ({ redirect: route.query.redirect }) },
+  { path: '/menu', component: Menu, meta: { requiresAuth: true } },
   {
     path: '/mainte', component: Maintenance,
     children: [
       { path: '', redirect: 'maintemenu' },
       { path: 'maintemenu', component: MainteMenu },
       { path: 'users', component: Users },
-      { path: 'useredit/:id', component: UserEdit, name: 'useredit', props: true },
-      { path: 'useradd', component: UserAdd },
-      { path: 'userroles/:id', component: UserRoles, name: 'userroles', props: true },
-      { path: 'usermakers/:id', component: UserMakers, name: 'usermakers', props: true },
+      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true },
+      { path: 'users/add', component: UserAdd, name: 'useradd' },
+      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true },
+      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true },
       { path: 'roles', component: Roles },
       { path: 'makers', component: Makers },
       { path: 'products', component: Products }
-    ]
+    ],
+    meta: { requiresAuth: true }
   },
   { path: '*', redirect: '/' }
 ]

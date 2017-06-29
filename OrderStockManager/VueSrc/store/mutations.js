@@ -6,6 +6,24 @@ import axios from 'axios'
 export const actions = {
   getDashboard({ commit, state }) {
     return Vue.axios.get("api/dashboards")
+  },
+  endLoading({ commit }) {
+    commit('fullLoadingShow', false)
+    commit('loadingShow', false)
+    commit('mainteLoadingShow', false)
+    commit('loadingMessage', "")
+  },
+  nowLoading({ commit }, message) {
+    commit('loadingMessage', message)
+    commit('loadingShow', true)
+  },
+  nowLoadingFull({ commit }, message) {
+    commit('loadingMessage', message)
+    commit('fullLoadingShow', true)
+  },
+  nowLoadingMainte({ commit }, message) {
+    commit('loadingMessage', message)
+    commit('mainteLoadingShow', true)
   }
 }
 
@@ -24,5 +42,17 @@ export const mutations = {
     }
     newlist.push(item)
     state.breadlist = newlist
+  },
+  fullLoadingShow(state, item) {
+    state.fullLoadingShow = item
+  },
+  loadingShow(state, item) {
+    state.loadingShow = item
+  },
+  mainteLoadingShow(state, item) {
+    state.mainteLoadingShow = item
+  },
+  loadingMessage(state, item) {
+    state.loadingMessage = item
   }
 }

@@ -10,7 +10,7 @@ div
         el-menu-item(index="/mainte/products") 商品メンテ
         el-menu-item(index="/mainte/groups") グループメンテ
         el-menu-item(index="/mainte/dashboards") ダッシュボードメンテ
-    el-col(:xs="16" :sm="18" :md="20" :lg="21")
+    el-col(:xs="16" :sm="18" :md="20" :lg="21" v-loading="nowLoading" :element-loading-text="loadingMessage")
       router-view
 </template>
 
@@ -19,12 +19,13 @@ export default {
   metaInfo: {
     title: '管理機能',
   },
-  beforeRouteEnter(to, from, next) {
-    next(vm => {
-      //vm.$store.commit('changeBreadcrumb',
-      //  { path: '/mainte', name: '管理画面' }
-      //)
-    })
+  computed: {
+    nowLoading: function () {
+      return this.$store.getters.nowLoadingMainte
+    },
+    loadingMessage: function () {
+      return this.$store.getters.loadingMessage
+    }
   }
 }
 </script>

@@ -22,6 +22,1706 @@ var global$1 = typeof global !== "undefined" ? global :
             typeof self !== "undefined" ? self :
             typeof window !== "undefined" ? window : {};
 
+// shim for using process in browser
+// based off https://github.com/defunctzombie/node-process/blob/master/browser.js
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+var cachedSetTimeout = defaultSetTimout;
+var cachedClearTimeout = defaultClearTimeout;
+if (typeof global$1.setTimeout === 'function') {
+    cachedSetTimeout = setTimeout;
+}
+if (typeof global$1.clearTimeout === 'function') {
+    cachedClearTimeout = clearTimeout;
+}
+
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+function nextTick(fun) {
+    var arguments$1 = arguments;
+
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments$1[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+}
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+var title = 'browser';
+var platform = 'browser';
+var browser = true;
+var env = {};
+var argv = [];
+var version = ''; // empty string to avoid regexp issues
+var versions = {};
+var release = {};
+var config = {};
+
+function noop() {}
+
+var on = noop;
+var addListener = noop;
+var once = noop;
+var off = noop;
+var removeListener = noop;
+var removeAllListeners = noop;
+var emit = noop;
+
+function binding(name) {
+    throw new Error('process.binding is not supported');
+}
+
+function cwd () { return '/' }
+function chdir (dir) {
+    throw new Error('process.chdir is not supported');
+}
+function umask() { return 0; }
+
+// from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
+var performance$1 = global$1.performance || {};
+var performanceNow =
+  performance$1.now        ||
+  performance$1.mozNow     ||
+  performance$1.msNow      ||
+  performance$1.oNow       ||
+  performance$1.webkitNow  ||
+  function(){ return (new Date()).getTime() };
+
+// generate timestamp or delta
+// see http://nodejs.org/api/process.html#process_process_hrtime
+function hrtime(previousTimestamp){
+  var clocktime = performanceNow.call(performance$1)*1e-3;
+  var seconds = Math.floor(clocktime);
+  var nanoseconds = Math.floor((clocktime%1)*1e9);
+  if (previousTimestamp) {
+    seconds = seconds - previousTimestamp[0];
+    nanoseconds = nanoseconds - previousTimestamp[1];
+    if (nanoseconds<0) {
+      seconds--;
+      nanoseconds += 1e9;
+    }
+  }
+  return [seconds,nanoseconds]
+}
+
+var startTime = new Date();
+function uptime() {
+  var currentTime = new Date();
+  var dif = currentTime - startTime;
+  return dif / 1000;
+}
+
+var process = {
+  nextTick: nextTick,
+  title: title,
+  browser: browser,
+  env: env,
+  argv: argv,
+  version: version,
+  versions: versions,
+  on: on,
+  addListener: addListener,
+  once: once,
+  off: off,
+  removeListener: removeListener,
+  removeAllListeners: removeAllListeners,
+  emit: emit,
+  binding: binding,
+  cwd: cwd,
+  chdir: chdir,
+  umask: umask,
+  hrtime: hrtime,
+  platform: platform,
+  release: release,
+  config: config,
+  uptime: uptime
+};
+
+var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function commonjsRequire () {
+	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
+}
+
+function unwrapExports (x) {
+	return x && x.__esModule ? x['default'] : x;
+}
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var es6Promise = createCommonjsModule(function (module, exports) {
+/*!
+ * @overview es6-promise - a tiny implementation of Promises/A+.
+ * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
+ * @license   Licensed under MIT license
+ *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
+ * @version   4.1.1
+ */
+
+(function (global, factory) {
+	module.exports = factory();
+}(commonjsGlobal, (function () { 'use strict';
+
+function objectOrFunction(x) {
+  var type = typeof x;
+  return x !== null && (type === 'object' || type === 'function');
+}
+
+function isFunction(x) {
+  return typeof x === 'function';
+}
+
+var _isArray = undefined;
+if (Array.isArray) {
+  _isArray = Array.isArray;
+} else {
+  _isArray = function (x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  };
+}
+
+var isArray = _isArray;
+
+var len = 0;
+var vertxNext = undefined;
+var customSchedulerFn = undefined;
+
+var asap = function asap(callback, arg) {
+  queue[len] = callback;
+  queue[len + 1] = arg;
+  len += 2;
+  if (len === 2) {
+    // If len is 2, that means that we need to schedule an async flush.
+    // If additional callbacks are queued before the queue is flushed, they
+    // will be processed by this flush that we are scheduling.
+    if (customSchedulerFn) {
+      customSchedulerFn(flush);
+    } else {
+      scheduleFlush();
+    }
+  }
+};
+
+function setScheduler(scheduleFn) {
+  customSchedulerFn = scheduleFn;
+}
+
+function setAsap(asapFn) {
+  asap = asapFn;
+}
+
+var browserWindow = typeof window !== 'undefined' ? window : undefined;
+var browserGlobal = browserWindow || {};
+var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && ({}).toString.call(process) === '[object process]';
+
+// test for web worker but not in IE10
+var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+
+// node
+function useNextTick() {
+  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+  // see https://github.com/cujojs/when/issues/410 for details
+  return function () {
+    return nextTick(flush);
+  };
+}
+
+// vertx
+function useVertxTimer() {
+  if (typeof vertxNext !== 'undefined') {
+    return function () {
+      vertxNext(flush);
+    };
+  }
+
+  return useSetTimeout();
+}
+
+function useMutationObserver() {
+  var iterations = 0;
+  var observer = new BrowserMutationObserver(flush);
+  var node = document.createTextNode('');
+  observer.observe(node, { characterData: true });
+
+  return function () {
+    node.data = iterations = ++iterations % 2;
+  };
+}
+
+// web worker
+function useMessageChannel() {
+  var channel = new MessageChannel();
+  channel.port1.onmessage = flush;
+  return function () {
+    return channel.port2.postMessage(0);
+  };
+}
+
+function useSetTimeout() {
+  // Store setTimeout reference so es6-promise will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var globalSetTimeout = setTimeout;
+  return function () {
+    return globalSetTimeout(flush, 1);
+  };
+}
+
+var queue = new Array(1000);
+function flush() {
+  for (var i = 0; i < len; i += 2) {
+    var callback = queue[i];
+    var arg = queue[i + 1];
+
+    callback(arg);
+
+    queue[i] = undefined;
+    queue[i + 1] = undefined;
+  }
+
+  len = 0;
+}
+
+function attemptVertx() {
+  try {
+    var r = commonjsRequire;
+    var vertx = r('vertx');
+    vertxNext = vertx.runOnLoop || vertx.runOnContext;
+    return useVertxTimer();
+  } catch (e) {
+    return useSetTimeout();
+  }
+}
+
+var scheduleFlush = undefined;
+// Decide what async method to use to triggering processing of queued callbacks:
+if (isNode) {
+  scheduleFlush = useNextTick();
+} else if (BrowserMutationObserver) {
+  scheduleFlush = useMutationObserver();
+} else if (isWorker) {
+  scheduleFlush = useMessageChannel();
+} else if (browserWindow === undefined && typeof commonjsRequire === 'function') {
+  scheduleFlush = attemptVertx();
+} else {
+  scheduleFlush = useSetTimeout();
+}
+
+function then(onFulfillment, onRejection) {
+  var _arguments = arguments;
+
+  var parent = this;
+
+  var child = new this.constructor(noop);
+
+  if (child[PROMISE_ID] === undefined) {
+    makePromise(child);
+  }
+
+  var _state = parent._state;
+
+  if (_state) {
+    (function () {
+      var callback = _arguments[_state - 1];
+      asap(function () {
+        return invokeCallback(_state, child, callback, parent._result);
+      });
+    })();
+  } else {
+    subscribe(parent, child, onFulfillment, onRejection);
+  }
+
+  return child;
+}
+
+/**
+  `Promise.resolve` returns a promise that will become resolved with the
+  passed `value`. It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    resolve(1);
+  });
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.resolve(1);
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  @method resolve
+  @static
+  @param {Any} value value that the returned promise will be resolved with
+  Useful for tooling.
+  @return {Promise} a promise that will become fulfilled with the given
+  `value`
+*/
+function resolve$1(object) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (object && typeof object === 'object' && object.constructor === Constructor) {
+    return object;
+  }
+
+  var promise = new Constructor(noop);
+  resolve(promise, object);
+  return promise;
+}
+
+var PROMISE_ID = Math.random().toString(36).substring(16);
+
+function noop() {}
+
+var PENDING = void 0;
+var FULFILLED = 1;
+var REJECTED = 2;
+
+var GET_THEN_ERROR = new ErrorObject();
+
+function selfFulfillment() {
+  return new TypeError("You cannot resolve a promise with itself");
+}
+
+function cannotReturnOwn() {
+  return new TypeError('A promises callback cannot return that same promise.');
+}
+
+function getThen(promise) {
+  try {
+    return promise.then;
+  } catch (error) {
+    GET_THEN_ERROR.error = error;
+    return GET_THEN_ERROR;
+  }
+}
+
+function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
+  try {
+    then$$1.call(value, fulfillmentHandler, rejectionHandler);
+  } catch (e) {
+    return e;
+  }
+}
+
+function handleForeignThenable(promise, thenable, then$$1) {
+  asap(function (promise) {
+    var sealed = false;
+    var error = tryThen(then$$1, thenable, function (value) {
+      if (sealed) {
+        return;
+      }
+      sealed = true;
+      if (thenable !== value) {
+        resolve(promise, value);
+      } else {
+        fulfill(promise, value);
+      }
+    }, function (reason) {
+      if (sealed) {
+        return;
+      }
+      sealed = true;
+
+      reject(promise, reason);
+    }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+    if (!sealed && error) {
+      sealed = true;
+      reject(promise, error);
+    }
+  }, promise);
+}
+
+function handleOwnThenable(promise, thenable) {
+  if (thenable._state === FULFILLED) {
+    fulfill(promise, thenable._result);
+  } else if (thenable._state === REJECTED) {
+    reject(promise, thenable._result);
+  } else {
+    subscribe(thenable, undefined, function (value) {
+      return resolve(promise, value);
+    }, function (reason) {
+      return reject(promise, reason);
+    });
+  }
+}
+
+function handleMaybeThenable(promise, maybeThenable, then$$1) {
+  if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
+    handleOwnThenable(promise, maybeThenable);
+  } else {
+    if (then$$1 === GET_THEN_ERROR) {
+      reject(promise, GET_THEN_ERROR.error);
+      GET_THEN_ERROR.error = null;
+    } else if (then$$1 === undefined) {
+      fulfill(promise, maybeThenable);
+    } else if (isFunction(then$$1)) {
+      handleForeignThenable(promise, maybeThenable, then$$1);
+    } else {
+      fulfill(promise, maybeThenable);
+    }
+  }
+}
+
+function resolve(promise, value) {
+  if (promise === value) {
+    reject(promise, selfFulfillment());
+  } else if (objectOrFunction(value)) {
+    handleMaybeThenable(promise, value, getThen(value));
+  } else {
+    fulfill(promise, value);
+  }
+}
+
+function publishRejection(promise) {
+  if (promise._onerror) {
+    promise._onerror(promise._result);
+  }
+
+  publish(promise);
+}
+
+function fulfill(promise, value) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+
+  promise._result = value;
+  promise._state = FULFILLED;
+
+  if (promise._subscribers.length !== 0) {
+    asap(publish, promise);
+  }
+}
+
+function reject(promise, reason) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+  promise._state = REJECTED;
+  promise._result = reason;
+
+  asap(publishRejection, promise);
+}
+
+function subscribe(parent, child, onFulfillment, onRejection) {
+  var _subscribers = parent._subscribers;
+  var length = _subscribers.length;
+
+  parent._onerror = null;
+
+  _subscribers[length] = child;
+  _subscribers[length + FULFILLED] = onFulfillment;
+  _subscribers[length + REJECTED] = onRejection;
+
+  if (length === 0 && parent._state) {
+    asap(publish, parent);
+  }
+}
+
+function publish(promise) {
+  var subscribers = promise._subscribers;
+  var settled = promise._state;
+
+  if (subscribers.length === 0) {
+    return;
+  }
+
+  var child = undefined,
+      callback = undefined,
+      detail = promise._result;
+
+  for (var i = 0; i < subscribers.length; i += 3) {
+    child = subscribers[i];
+    callback = subscribers[i + settled];
+
+    if (child) {
+      invokeCallback(settled, child, callback, detail);
+    } else {
+      callback(detail);
+    }
+  }
+
+  promise._subscribers.length = 0;
+}
+
+function ErrorObject() {
+  this.error = null;
+}
+
+var TRY_CATCH_ERROR = new ErrorObject();
+
+function tryCatch(callback, detail) {
+  try {
+    return callback(detail);
+  } catch (e) {
+    TRY_CATCH_ERROR.error = e;
+    return TRY_CATCH_ERROR;
+  }
+}
+
+function invokeCallback(settled, promise, callback, detail) {
+  var hasCallback = isFunction(callback),
+      value = undefined,
+      error = undefined,
+      succeeded = undefined,
+      failed = undefined;
+
+  if (hasCallback) {
+    value = tryCatch(callback, detail);
+
+    if (value === TRY_CATCH_ERROR) {
+      failed = true;
+      error = value.error;
+      value.error = null;
+    } else {
+      succeeded = true;
+    }
+
+    if (promise === value) {
+      reject(promise, cannotReturnOwn());
+      return;
+    }
+  } else {
+    value = detail;
+    succeeded = true;
+  }
+
+  if (promise._state !== PENDING) {
+    // noop
+  } else if (hasCallback && succeeded) {
+      resolve(promise, value);
+    } else if (failed) {
+      reject(promise, error);
+    } else if (settled === FULFILLED) {
+      fulfill(promise, value);
+    } else if (settled === REJECTED) {
+      reject(promise, value);
+    }
+}
+
+function initializePromise(promise, resolver) {
+  try {
+    resolver(function resolvePromise(value) {
+      resolve(promise, value);
+    }, function rejectPromise(reason) {
+      reject(promise, reason);
+    });
+  } catch (e) {
+    reject(promise, e);
+  }
+}
+
+var id = 0;
+function nextId() {
+  return id++;
+}
+
+function makePromise(promise) {
+  promise[PROMISE_ID] = id++;
+  promise._state = undefined;
+  promise._result = undefined;
+  promise._subscribers = [];
+}
+
+function Enumerator$1(Constructor, input) {
+  this._instanceConstructor = Constructor;
+  this.promise = new Constructor(noop);
+
+  if (!this.promise[PROMISE_ID]) {
+    makePromise(this.promise);
+  }
+
+  if (isArray(input)) {
+    this.length = input.length;
+    this._remaining = input.length;
+
+    this._result = new Array(this.length);
+
+    if (this.length === 0) {
+      fulfill(this.promise, this._result);
+    } else {
+      this.length = this.length || 0;
+      this._enumerate(input);
+      if (this._remaining === 0) {
+        fulfill(this.promise, this._result);
+      }
+    }
+  } else {
+    reject(this.promise, validationError());
+  }
+}
+
+function validationError() {
+  return new Error('Array Methods must be provided an Array');
+}
+
+Enumerator$1.prototype._enumerate = function (input) {
+  var this$1 = this;
+
+  for (var i = 0; this._state === PENDING && i < input.length; i++) {
+    this$1._eachEntry(input[i], i);
+  }
+};
+
+Enumerator$1.prototype._eachEntry = function (entry, i) {
+  var c = this._instanceConstructor;
+  var resolve$$1 = c.resolve;
+
+  if (resolve$$1 === resolve$1) {
+    var _then = getThen(entry);
+
+    if (_then === then && entry._state !== PENDING) {
+      this._settledAt(entry._state, i, entry._result);
+    } else if (typeof _then !== 'function') {
+      this._remaining--;
+      this._result[i] = entry;
+    } else if (c === Promise$2) {
+      var promise = new c(noop);
+      handleMaybeThenable(promise, entry, _then);
+      this._willSettleAt(promise, i);
+    } else {
+      this._willSettleAt(new c(function (resolve$$1) {
+        return resolve$$1(entry);
+      }), i);
+    }
+  } else {
+    this._willSettleAt(resolve$$1(entry), i);
+  }
+};
+
+Enumerator$1.prototype._settledAt = function (state, i, value) {
+  var promise = this.promise;
+
+  if (promise._state === PENDING) {
+    this._remaining--;
+
+    if (state === REJECTED) {
+      reject(promise, value);
+    } else {
+      this._result[i] = value;
+    }
+  }
+
+  if (this._remaining === 0) {
+    fulfill(promise, this._result);
+  }
+};
+
+Enumerator$1.prototype._willSettleAt = function (promise, i) {
+  var enumerator = this;
+
+  subscribe(promise, undefined, function (value) {
+    return enumerator._settledAt(FULFILLED, i, value);
+  }, function (reason) {
+    return enumerator._settledAt(REJECTED, i, reason);
+  });
+};
+
+/**
+  `Promise.all` accepts an array of promises, and returns a new promise which
+  is fulfilled with an array of fulfillment values for the passed promises, or
+  rejected with the reason of the first passed promise to be rejected. It casts all
+  elements of the passed iterable to promises as it runs this algorithm.
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = resolve(2);
+  let promise3 = resolve(3);
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // The array here would be [ 1, 2, 3 ];
+  });
+  ```
+
+  If any of the `promises` given to `all` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promises's
+  rejection handler. For example:
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = reject(new Error("2"));
+  let promise3 = reject(new Error("3"));
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(error) {
+    // error.message === "2"
+  });
+  ```
+
+  @method all
+  @static
+  @param {Array} entries array of promises
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when all `promises` have been
+  fulfilled, or rejected if any of them become rejected.
+  @static
+*/
+function all$1(entries) {
+  return new Enumerator$1(this, entries).promise;
+}
+
+/**
+  `Promise.race` returns a new promise which is settled in the same way as the
+  first passed promise to settle.
+
+  Example:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 2');
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // result === 'promise 2' because it was resolved before promise1
+    // was resolved.
+  });
+  ```
+
+  `Promise.race` is deterministic in that only the state of the first
+  settled promise matters. For example, even if other promises given to the
+  `promises` array argument are resolved, but the first settled promise has
+  become rejected before the other promises became fulfilled, the returned
+  promise will become rejected:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      reject(new Error('promise 2'));
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // Code here never runs
+  }, function(reason){
+    // reason.message === 'promise 2' because promise 2 became rejected before
+    // promise 1 became fulfilled
+  });
+  ```
+
+  An example real-world use case is implementing timeouts:
+
+  ```javascript
+  Promise.race([ajax('foo.json'), timeout(5000)])
+  ```
+
+  @method race
+  @static
+  @param {Array} promises array of promises to observe
+  Useful for tooling.
+  @return {Promise} a promise which settles in the same way as the first passed
+  promise to settle.
+*/
+function race$1(entries) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (!isArray(entries)) {
+    return new Constructor(function (_, reject) {
+      return reject(new TypeError('You must pass an array to race.'));
+    });
+  } else {
+    return new Constructor(function (resolve, reject) {
+      var length = entries.length;
+      for (var i = 0; i < length; i++) {
+        Constructor.resolve(entries[i]).then(resolve, reject);
+      }
+    });
+  }
+}
+
+/**
+  `Promise.reject` returns a promise rejected with the passed `reason`.
+  It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    reject(new Error('WHOOPS'));
+  });
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.reject(new Error('WHOOPS'));
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  @method reject
+  @static
+  @param {Any} reason value that the returned promise will be rejected with.
+  Useful for tooling.
+  @return {Promise} a promise rejected with the given `reason`.
+*/
+function reject$1(reason) {
+  /*jshint validthis:true */
+  var Constructor = this;
+  var promise = new Constructor(noop);
+  reject(promise, reason);
+  return promise;
+}
+
+function needsResolver() {
+  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+}
+
+function needsNew() {
+  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+}
+
+/**
+  Promise objects represent the eventual result of an asynchronous operation. The
+  primary way of interacting with a promise is through its `then` method, which
+  registers callbacks to receive either a promise's eventual value or the reason
+  why the promise cannot be fulfilled.
+
+  Terminology
+  -----------
+
+  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+  - `thenable` is an object or function that defines a `then` method.
+  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+  - `exception` is a value that is thrown using the throw statement.
+  - `reason` is a value that indicates why a promise was rejected.
+  - `settled` the final resting state of a promise, fulfilled or rejected.
+
+  A promise can be in one of three states: pending, fulfilled, or rejected.
+
+  Promises that are fulfilled have a fulfillment value and are in the fulfilled
+  state.  Promises that are rejected have a rejection reason and are in the
+  rejected state.  A fulfillment value is never a thenable.
+
+  Promises can also be said to *resolve* a value.  If this value is also a
+  promise, then the original promise's settled state will match the value's
+  settled state.  So a promise that *resolves* a promise that rejects will
+  itself reject, and a promise that *resolves* a promise that fulfills will
+  itself fulfill.
+
+
+  Basic Usage:
+  ------------
+
+  ```js
+  let promise = new Promise(function(resolve, reject) {
+    // on success
+    resolve(value);
+
+    // on failure
+    reject(reason);
+  });
+
+  promise.then(function(value) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Advanced Usage:
+  ---------------
+
+  Promises shine when abstracting away asynchronous interactions such as
+  `XMLHttpRequest`s.
+
+  ```js
+  function getJSON(url) {
+    return new Promise(function(resolve, reject){
+      let xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onreadystatechange = handler;
+      xhr.responseType = 'json';
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          if (this.status === 200) {
+            resolve(this.response);
+          } else {
+            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
+          }
+        }
+      };
+    });
+  }
+
+  getJSON('/posts.json').then(function(json) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Unlike callbacks, promises are great composable primitives.
+
+  ```js
+  Promise.all([
+    getJSON('/posts'),
+    getJSON('/comments')
+  ]).then(function(values){
+    values[0] // => postsJSON
+    values[1] // => commentsJSON
+
+    return values;
+  });
+  ```
+
+  @class Promise
+  @param {function} resolver
+  Useful for tooling.
+  @constructor
+*/
+function Promise$2(resolver) {
+  this[PROMISE_ID] = nextId();
+  this._result = this._state = undefined;
+  this._subscribers = [];
+
+  if (noop !== resolver) {
+    typeof resolver !== 'function' && needsResolver();
+    this instanceof Promise$2 ? initializePromise(this, resolver) : needsNew();
+  }
+}
+
+Promise$2.all = all$1;
+Promise$2.race = race$1;
+Promise$2.resolve = resolve$1;
+Promise$2.reject = reject$1;
+Promise$2._setScheduler = setScheduler;
+Promise$2._setAsap = setAsap;
+Promise$2._asap = asap;
+
+Promise$2.prototype = {
+  constructor: Promise$2,
+
+  /**
+    The primary way of interacting with a promise is through its `then` method,
+    which registers callbacks to receive either a promise's eventual value or the
+    reason why the promise cannot be fulfilled.
+  
+    ```js
+    findUser().then(function(user){
+      // user is available
+    }, function(reason){
+      // user is unavailable, and you are given the reason why
+    });
+    ```
+  
+    Chaining
+    --------
+  
+    The return value of `then` is itself a promise.  This second, 'downstream'
+    promise is resolved with the return value of the first promise's fulfillment
+    or rejection handler, or rejected if the handler throws an exception.
+  
+    ```js
+    findUser().then(function (user) {
+      return user.name;
+    }, function (reason) {
+      return 'default name';
+    }).then(function (userName) {
+      // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+      // will be `'default name'`
+    });
+  
+    findUser().then(function (user) {
+      throw new Error('Found user, but still unhappy');
+    }, function (reason) {
+      throw new Error('`findUser` rejected and we're unhappy');
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+      // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+    });
+    ```
+    If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+  
+    ```js
+    findUser().then(function (user) {
+      throw new PedagogicalException('Upstream error');
+    }).then(function (value) {
+      // never reached
+    }).then(function (value) {
+      // never reached
+    }, function (reason) {
+      // The `PedgagocialException` is propagated all the way down to here
+    });
+    ```
+  
+    Assimilation
+    ------------
+  
+    Sometimes the value you want to propagate to a downstream promise can only be
+    retrieved asynchronously. This can be achieved by returning a promise in the
+    fulfillment or rejection handler. The downstream promise will then be pending
+    until the returned promise is settled. This is called *assimilation*.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // The user's comments are now available
+    });
+    ```
+  
+    If the assimliated promise rejects, then the downstream promise will also reject.
+  
+    ```js
+    findUser().then(function (user) {
+      return findCommentsByAuthor(user);
+    }).then(function (comments) {
+      // If `findCommentsByAuthor` fulfills, we'll have the value here
+    }, function (reason) {
+      // If `findCommentsByAuthor` rejects, we'll have the reason here
+    });
+    ```
+  
+    Simple Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let result;
+  
+    try {
+      result = findResult();
+      // success
+    } catch(reason) {
+      // failure
+    }
+    ```
+  
+    Errback Example
+  
+    ```js
+    findResult(function(result, err){
+      if (err) {
+        // failure
+      } else {
+        // success
+      }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findResult().then(function(result){
+      // success
+    }, function(reason){
+      // failure
+    });
+    ```
+  
+    Advanced Example
+    --------------
+  
+    Synchronous Example
+  
+    ```javascript
+    let author, books;
+  
+    try {
+      author = findAuthor();
+      books  = findBooksByAuthor(author);
+      // success
+    } catch(reason) {
+      // failure
+    }
+    ```
+  
+    Errback Example
+  
+    ```js
+  
+    function foundBooks(books) {
+  
+    }
+  
+    function failure(reason) {
+  
+    }
+  
+    findAuthor(function(author, err){
+      if (err) {
+        failure(err);
+        // failure
+      } else {
+        try {
+          findBoooksByAuthor(author, function(books, err) {
+            if (err) {
+              failure(err);
+            } else {
+              try {
+                foundBooks(books);
+              } catch(reason) {
+                failure(reason);
+              }
+            }
+          });
+        } catch(error) {
+          failure(err);
+        }
+        // success
+      }
+    });
+    ```
+  
+    Promise Example;
+  
+    ```javascript
+    findAuthor().
+      then(findBooksByAuthor).
+      then(function(books){
+        // found books
+    }).catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method then
+    @param {Function} onFulfilled
+    @param {Function} onRejected
+    Useful for tooling.
+    @return {Promise}
+  */
+  then: then,
+
+  /**
+    `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+    as the catch block of a try/catch statement.
+  
+    ```js
+    function findAuthor(){
+      throw new Error('couldn't find that author');
+    }
+  
+    // synchronous
+    try {
+      findAuthor();
+    } catch(reason) {
+      // something went wrong
+    }
+  
+    // async with promises
+    findAuthor().catch(function(reason){
+      // something went wrong
+    });
+    ```
+  
+    @method catch
+    @param {Function} onRejection
+    Useful for tooling.
+    @return {Promise}
+  */
+  'catch': function _catch(onRejection) {
+    return this.then(null, onRejection);
+  }
+};
+
+/*global self*/
+function polyfill$1() {
+    var local = undefined;
+
+    if (typeof commonjsGlobal !== 'undefined') {
+        local = commonjsGlobal;
+    } else if (typeof self !== 'undefined') {
+        local = self;
+    } else {
+        try {
+            local = Function('return this')();
+        } catch (e) {
+            throw new Error('polyfill failed because global object is unavailable in this environment');
+        }
+    }
+
+    var P = local.Promise;
+
+    if (P) {
+        var promiseToString = null;
+        try {
+            promiseToString = Object.prototype.toString.call(P.resolve());
+        } catch (e) {
+            // silently ignored
+        }
+
+        if (promiseToString === '[object Promise]' && !P.cast) {
+            return;
+        }
+    }
+
+    local.Promise = Promise$2;
+}
+
+// Strange compat..
+Promise$2.polyfill = polyfill$1;
+Promise$2.Promise = Promise$2;
+
+return Promise$2;
+
+})));
+
+
+});
+
+var auto = es6Promise.polyfill();
+
+/**
+ *
+ *
+ * @author Jerry Bendy <jerry@icewingcc.com>
+ * @licence MIT
+ *
+ */
+
+(function(self) {
+    'use strict';
+
+    var nativeURLSearchParams = self.URLSearchParams ? self.URLSearchParams : null,
+        isSupportObjectConstructor = nativeURLSearchParams && (new nativeURLSearchParams({a: 1})).toString() === 'a=1',
+        __URLSearchParams__ = "__URLSearchParams__",
+        prototype = URLSearchParamsPolyfill.prototype,
+        iterable = !!(self.Symbol && self.Symbol.iterator);
+
+    if (nativeURLSearchParams && isSupportObjectConstructor) {
+        return;
+    }
+
+
+    /**
+     * Make a URLSearchParams instance
+     *
+     * @param {object|string|URLSearchParams} search
+     * @constructor
+     */
+    function URLSearchParamsPolyfill(search) {
+        search = search || "";
+
+        // support construct object with another URLSearchParams instance
+        if (search instanceof URLSearchParams || search instanceof URLSearchParamsPolyfill) {
+            search = search.toString();
+        }
+
+        this [__URLSearchParams__] = parseToDict(search);
+    }
+
+
+    /**
+     * Appends a specified key/value pair as a new search parameter.
+     *
+     * @param {string} name
+     * @param {string} value
+     */
+    prototype.append = function(name, value) {
+        appendTo(this [__URLSearchParams__], name, value);
+    };
+
+    /**
+     * Deletes the given search parameter, and its associated value,
+     * from the list of all search parameters.
+     *
+     * @param {string} name
+     */
+    prototype.delete = function(name) {
+        delete this [__URLSearchParams__] [name];
+    };
+
+    /**
+     * Returns the first value associated to the given search parameter.
+     *
+     * @param {string} name
+     * @returns {string|null}
+     */
+    prototype.get = function(name) {
+        var dict = this [__URLSearchParams__];
+        return name in dict ? dict[name][0] : null;
+    };
+
+    /**
+     * Returns all the values association with a given search parameter.
+     *
+     * @param {string} name
+     * @returns {Array}
+     */
+    prototype.getAll = function(name) {
+        var dict = this [__URLSearchParams__];
+        return name in dict ? dict [name].slice(0) : [];
+    };
+
+    /**
+     * Returns a Boolean indicating if such a search parameter exists.
+     *
+     * @param {string} name
+     * @returns {boolean}
+     */
+    prototype.has = function(name) {
+        return name in this [__URLSearchParams__];
+    };
+
+    /**
+     * Sets the value associated to a given search parameter to
+     * the given value. If there were several values, delete the
+     * others.
+     *
+     * @param {string} name
+     * @param {string} value
+     */
+    prototype.set = function set(name, value) {
+        this [__URLSearchParams__][name] = ['' + value];
+    };
+
+    /**
+     * Returns a string containg a query string suitable for use in a URL.
+     *
+     * @returns {string}
+     */
+    prototype.toString = function() {
+        var dict = this[__URLSearchParams__], query = [], i, key, name, value;
+        for (key in dict) {
+            name = encode(key);
+            for (i = 0, value = dict[key]; i < value.length; i++) {
+                query.push(name + '=' + encode(value[i]));
+            }
+        }
+        return query.join('&');
+    };
+
+
+    /*
+     * Apply polifill to global object and append other prototype into it
+     */
+    self.URLSearchParams = (nativeURLSearchParams && !isSupportObjectConstructor) ?
+        new Proxy(nativeURLSearchParams, {
+            construct: function(target, args) {
+                return new target((new URLSearchParamsPolyfill(args[0]).toString()));
+            }
+        }) :
+        URLSearchParamsPolyfill;
+
+
+    var USPProto = self.URLSearchParams.prototype;
+
+    USPProto.polyfill = true;
+
+    /**
+     *
+     * @param {function} callback
+     * @param {object} thisArg
+     */
+    USPProto.forEach = USPProto.forEach || function(callback, thisArg) {
+        var dict = parseToDict(this.toString());
+        Object.getOwnPropertyNames(dict).forEach(function(name) {
+            dict[name].forEach(function(value) {
+                callback.call(thisArg, value, name, this);
+            }, this);
+        }, this);
+    };
+
+    /**
+     * Sort all name-value pairs
+     */
+    USPProto.sort = USPProto.sort || function() {
+        var this$1 = this;
+
+        var dict = parseToDict(this.toString()), keys = [], k, i, j;
+        for (k in dict) {
+            keys.push(k);
+        }
+        keys.sort();
+
+        for (i = 0; i < keys.length; i++) {
+            this$1.delete(keys[i]);
+        }
+        for (i = 0; i < keys.length; i++) {
+            var key = keys[i], values = dict[key];
+            for (j = 0; j < values.length; j++) {
+                this$1.append(key, values[j]);
+            }
+        }
+    };
+
+    /**
+     * Returns an iterator allowing to go through all keys of
+     * the key/value pairs contained in this object.
+     *
+     * @returns {function}
+     */
+    USPProto.keys = USPProto.keys || function() {
+        var items = [];
+        this.forEach(function(item, name) {
+            items.push([name]);
+        });
+        return makeIterator(items);
+    };
+
+    /**
+     * Returns an iterator allowing to go through all values of
+     * the key/value pairs contained in this object.
+     *
+     * @returns {function}
+     */
+    USPProto.values = USPProto.values || function() {
+        var items = [];
+        this.forEach(function(item) {
+            items.push([item]);
+        });
+        return makeIterator(items);
+    };
+
+    /**
+     * Returns an iterator allowing to go through all key/value
+     * pairs contained in this object.
+     *
+     * @returns {function}
+     */
+    USPProto.entries = USPProto.entries || function() {
+        var items = [];
+        this.forEach(function(item, name) {
+            items.push([name, item]);
+        });
+        return makeIterator(items);
+    };
+
+
+    if (iterable) {
+        USPProto[self.Symbol.iterator] = USPProto[self.Symbol.iterator] || USPProto.entries;
+    }
+
+
+    function encode(str) {
+        var replace = {
+            '!': '%21',
+            "'": '%27',
+            '(': '%28',
+            ')': '%29',
+            '~': '%7E',
+            '%20': '+',
+            '%00': '\x00'
+        };
+        return encodeURIComponent(str).replace(/[!'\(\)~]|%20|%00/g, function(match) {
+            return replace[match];
+        });
+    }
+
+    function decode(str) {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+    }
+
+    function makeIterator(arr) {
+        var iterator = {
+            next: function() {
+                var value = arr.shift();
+                return {done: value === undefined, value: value};
+            }
+        };
+
+        if (iterable) {
+            iterator[self.Symbol.iterator] = function() {
+                return iterator;
+            };
+        }
+
+        return iterator;
+    }
+
+    function parseToDict(search) {
+        var dict = {};
+
+        if (typeof search === "object") {
+            for (var i in search) {
+                if (search.hasOwnProperty(i)) {
+                    var str = typeof search [i] === 'string' ? search [i] : JSON.stringify(search [i]);
+                    appendTo(dict, i, str);
+                }
+            }
+
+        } else {
+            // remove first '?'
+            if (search.indexOf("?") === 0) {
+                search = search.slice(1);
+            }
+
+            var pairs = search.split("&");
+            for (var j = 0; j < pairs.length; j++) {
+                var value = pairs [j],
+                    index = value.indexOf('=');
+
+                if (-1 < index) {
+                    appendTo(dict, decode(value.slice(0, index)), decode(value.slice(index + 1)));
+                }
+            }
+        }
+
+        return dict;
+    }
+
+    function appendTo(dict, name, value) {
+        if (name in dict) {
+            dict[name].push('' + value);
+        } else {
+            dict[name] = ['' + value];
+        }
+    }
+
+})(typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : (typeof window !== 'undefined' ? window : commonjsGlobal));
+
 /*!
  * Vue.js v2.3.4
  * (c) 2014-2017 Evan You
@@ -232,7 +1932,7 @@ function toObject (arr) {
 /**
  * Perform no operation.
  */
-function noop () {}
+function noop$1 () {}
 
 /**
  * Always return false.
@@ -280,7 +1980,7 @@ function looseIndexOf (arr, val) {
 /**
  * Ensure a function is called only once.
  */
-function once (fn) {
+function once$1 (fn) {
   var called = false;
   return function () {
     if (!called) {
@@ -313,7 +2013,7 @@ var LIFECYCLE_HOOKS = [
 
 /*  */
 
-var config = ({
+var config$1 = ({
   /**
    * Option merge strategies (used in core/util/options)
    */
@@ -375,7 +2075,7 @@ var config = ({
   /**
    * Get the namespace of an element
    */
-  getTagNamespace: noop,
+  getTagNamespace: noop$1,
 
   /**
    * Parse the real tag name for the specific platform.
@@ -438,8 +2138,8 @@ function parsePath (path) {
 
 /*  */
 
-var warn = noop;
-var tip = noop;
+var warn = noop$1;
+var tip = noop$1;
 var formatComponentName = (null); // work around flow check
 
 {
@@ -450,7 +2150,7 @@ var formatComponentName = (null); // work around flow check
     .replace(/[-_]/g, ''); };
 
   warn = function (msg, vm) {
-    if (hasConsole && (!config.silent)) {
+    if (hasConsole && (!config$1.silent)) {
       console.error("[Vue warn]: " + msg + (
         vm ? generateComponentTrace(vm) : ''
       ));
@@ -458,7 +2158,7 @@ var formatComponentName = (null); // work around flow check
   };
 
   tip = function (msg, vm) {
-    if (hasConsole && (!config.silent)) {
+    if (hasConsole && (!config$1.silent)) {
       console.warn("[Vue tip]: " + msg + (
         vm ? generateComponentTrace(vm) : ''
       ));
@@ -532,8 +2232,8 @@ var formatComponentName = (null); // work around flow check
 /*  */
 
 function handleError (err, vm, info) {
-  if (config.errorHandler) {
-    config.errorHandler.call(null, err, vm, info);
+  if (config$1.errorHandler) {
+    config$1.errorHandler.call(null, err, vm, info);
   } else {
     {
       warn(("Error in " + info + ": \"" + (err.toString()) + "\""), vm);
@@ -609,7 +2309,7 @@ var hasSymbol =
 /**
  * Defer a task to execute it asynchronously.
  */
-var nextTick = (function () {
+var nextTick$1 = (function () {
   var callbacks = [];
   var pending = false;
   var timerFunc;
@@ -640,7 +2340,7 @@ var nextTick = (function () {
       // microtask queue but the queue isn't being flushed, until the browser
       // needs to do some other work, e.g. handle a timer. Therefore we can
       // "force" the microtask queue to be flushed by adding an empty timer.
-      if (isIOS) { setTimeout(noop); }
+      if (isIOS) { setTimeout(noop$1); }
     };
   } else if (typeof MutationObserver !== 'undefined' && (
     isNative(MutationObserver) ||
@@ -1063,7 +2763,7 @@ function dependArray (value) {
  * how to merge a parent option value and a child option
  * value into the final value.
  */
-var strats = config.optionMergeStrategies;
+var strats = config$1.optionMergeStrategies;
 
 /**
  * Options with restrictions
@@ -1246,7 +2946,7 @@ var defaultStrat = function (parentVal, childVal) {
 function checkComponents (options) {
   for (var key in options.components) {
     var lower = key.toLowerCase();
-    if (isBuiltInTag(lower) || config.isReservedTag(lower)) {
+    if (isBuiltInTag(lower) || config$1.isReservedTag(lower)) {
       warn(
         'Do not use built-in or reserved HTML elements as component ' +
         'id: ' + key
@@ -1573,7 +3273,7 @@ var initProxy;
 
   if (hasProxy) {
     var isBuiltInModifier = makeMap('stop,prevent,self,ctrl,shift,alt,meta');
-    config.keyCodes = new Proxy(config.keyCodes, {
+    config$1.keyCodes = new Proxy(config$1.keyCodes, {
       set: function set (target, key, value) {
         if (isBuiltInModifier(key)) {
           warn(("Avoid overwriting built-in modifier in config.keyCodes: ." + key));
@@ -2012,7 +3712,7 @@ function resolveAsyncComponent (
       }
     };
 
-    var resolve = once(function (res) {
+    var resolve = once$1(function (res) {
       // cache resolved
       factory.resolved = ensureCtor(res, baseCtor);
       // invoke callbacks only if this is not a synchronous resolve
@@ -2022,7 +3722,7 @@ function resolveAsyncComponent (
       }
     });
 
-    var reject = once(function (reason) {
+    var reject = once$1(function (reason) {
       "development" !== 'production' && warn(
         "Failed to resolve async component: " + (String(factory)) +
         (reason ? ("\nReason: " + reason) : '')
@@ -2435,7 +4135,7 @@ function mountComponent (
 
   var updateComponent;
   /* istanbul ignore if */
-  if ("development" !== 'production' && config.performance && mark) {
+  if ("development" !== 'production' && config$1.performance && mark) {
     updateComponent = function () {
       var name = vm._name;
       var id = vm._uid;
@@ -2458,7 +4158,7 @@ function mountComponent (
     };
   }
 
-  vm._watcher = new Watcher(vm, updateComponent, noop);
+  vm._watcher = new Watcher(vm, updateComponent, noop$1);
   hydrating = false;
 
   // manually mounted instance, call mounted on self
@@ -2587,19 +4287,19 @@ function callHook (vm, hook) {
 
 var MAX_UPDATE_COUNT = 100;
 
-var queue = [];
+var queue$1 = [];
 var activatedChildren = [];
 var has = {};
 var circular = {};
 var waiting = false;
 var flushing = false;
-var index = 0;
+var index$2 = 0;
 
 /**
  * Reset the scheduler's state.
  */
 function resetSchedulerState () {
-  index = queue.length = activatedChildren.length = 0;
+  index$2 = queue$1.length = activatedChildren.length = 0;
   has = {};
   {
     circular = {};
@@ -2622,12 +4322,12 @@ function flushSchedulerQueue () {
   //    user watchers are created before the render watcher)
   // 3. If a component is destroyed during a parent component's watcher run,
   //    its watchers can be skipped.
-  queue.sort(function (a, b) { return a.id - b.id; });
+  queue$1.sort(function (a, b) { return a.id - b.id; });
 
   // do not cache length because more watchers might be pushed
   // as we run existing watchers
-  for (index = 0; index < queue.length; index++) {
-    watcher = queue[index];
+  for (index$2 = 0; index$2 < queue$1.length; index$2++) {
+    watcher = queue$1[index$2];
     id = watcher.id;
     has[id] = null;
     watcher.run();
@@ -2650,7 +4350,7 @@ function flushSchedulerQueue () {
 
   // keep copies of post queues before resetting state
   var activatedQueue = activatedChildren.slice();
-  var updatedQueue = queue.slice();
+  var updatedQueue = queue$1.slice();
 
   resetSchedulerState();
 
@@ -2660,7 +4360,7 @@ function flushSchedulerQueue () {
 
   // devtool hook
   /* istanbul ignore if */
-  if (devtools && config.devtools) {
+  if (devtools && config$1.devtools) {
     devtools.emit('flush');
   }
 }
@@ -2704,20 +4404,20 @@ function queueWatcher (watcher) {
   if (has[id] == null) {
     has[id] = true;
     if (!flushing) {
-      queue.push(watcher);
+      queue$1.push(watcher);
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
-      var i = queue.length - 1;
-      while (i > index && queue[i].id > watcher.id) {
+      var i = queue$1.length - 1;
+      while (i > index$2 && queue$1[i].id > watcher.id) {
         i--;
       }
-      queue.splice(i + 1, 0, watcher);
+      queue$1.splice(i + 1, 0, watcher);
     }
     // queue the flush
     if (!waiting) {
       waiting = true;
-      nextTick(flushSchedulerQueue);
+      nextTick$1(flushSchedulerQueue);
     }
   }
 }
@@ -2967,8 +4667,8 @@ function _traverse (val, seen) {
 var sharedPropertyDefinition = {
   enumerable: true,
   configurable: true,
-  get: noop,
-  set: noop
+  get: noop$1,
+  set: noop$1
 };
 
 function proxy (target, sourceKey, key) {
@@ -3015,7 +4715,7 @@ function initProps (vm, propsOptions) {
     var value = validateProp(key, propsOptions, propsData, vm);
     /* istanbul ignore else */
     {
-      if (isReservedProp[key] || config.isReservedAttr(key)) {
+      if (isReservedProp[key] || config$1.isReservedAttr(key)) {
         warn(
           ("\"" + key + "\" is a reserved attribute and cannot be used as component prop."),
           vm
@@ -3100,11 +4800,11 @@ function initComputed (vm, computed) {
           ("No getter function has been defined for computed property \"" + key + "\"."),
           vm
         );
-        getter = noop;
+        getter = noop$1;
       }
     }
     // create internal watcher for the computed property.
-    watchers[key] = new Watcher(vm, getter, noop, computedWatcherOptions);
+    watchers[key] = new Watcher(vm, getter, noop$1, computedWatcherOptions);
 
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
@@ -3124,16 +4824,16 @@ function initComputed (vm, computed) {
 function defineComputed (target, key, userDef) {
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = createComputedGetter(key);
-    sharedPropertyDefinition.set = noop;
+    sharedPropertyDefinition.set = noop$1;
   } else {
     sharedPropertyDefinition.get = userDef.get
       ? userDef.cache !== false
         ? createComputedGetter(key)
         : userDef.get
-      : noop;
+      : noop$1;
     sharedPropertyDefinition.set = userDef.set
       ? userDef.set
-      : noop;
+      : noop$1;
   }
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
@@ -3156,7 +4856,7 @@ function createComputedGetter (key) {
 function initMethods (vm, methods) {
   var props = vm.$options.props;
   for (var key in methods) {
-    vm[key] = methods[key] == null ? noop : bind(methods[key], vm);
+    vm[key] = methods[key] == null ? noop$1 : bind(methods[key], vm);
     {
       if (methods[key] == null) {
         warn(
@@ -3623,11 +5323,11 @@ function _createElement (
   var vnode, ns;
   if (typeof tag === 'string') {
     var Ctor;
-    ns = config.getTagNamespace(tag);
-    if (config.isReservedTag(tag)) {
+    ns = config$1.getTagNamespace(tag);
+    if (config$1.isReservedTag(tag)) {
       // platform built-in elements
       vnode = new VNode(
-        config.parsePlatformTagName(tag), data, children,
+        config$1.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       );
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
@@ -3756,7 +5456,7 @@ function checkKeyCodes (
   key,
   builtInAlias
 ) {
-  var keyCodes = config.keyCodes[key] || builtInAlias;
+  var keyCodes = config$1.keyCodes[key] || builtInAlias;
   if (Array.isArray(keyCodes)) {
     return keyCodes.indexOf(eventKeyCode) === -1
   } else {
@@ -3791,7 +5491,7 @@ function bindObjectProps (
           hash = data;
         } else {
           var type = data.attrs && data.attrs.type;
-          hash = asProp || config.mustUseProp(tag, type, key)
+          hash = asProp || config$1.mustUseProp(tag, type, key)
             ? data.domProps || (data.domProps = {})
             : data.attrs || (data.attrs = {});
         }
@@ -3884,7 +5584,7 @@ function initRender (vm) {
 
 function renderMixin (Vue) {
   Vue.prototype.$nextTick = function (fn) {
-    return nextTick(fn, this)
+    return nextTick$1(fn, this)
   };
 
   Vue.prototype._render = function () {
@@ -3971,7 +5671,7 @@ function initMixin (Vue) {
 
     var startTag, endTag;
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if ("development" !== 'production' && config$1.performance && mark) {
       startTag = "vue-perf-init:" + (vm._uid);
       endTag = "vue-perf-end:" + (vm._uid);
       mark(startTag);
@@ -4008,7 +5708,7 @@ function initMixin (Vue) {
     callHook(vm, 'created');
 
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if ("development" !== 'production' && config$1.performance && mark) {
       vm._name = formatComponentName(vm, false);
       mark(endTag);
       measure(((vm._name) + " init"), startTag, endTag);
@@ -4253,7 +5953,7 @@ function initAssetRegisters (Vue) {
       } else {
         /* istanbul ignore if */
         {
-          if (type === 'component' && config.isReservedTag(id)) {
+          if (type === 'component' && config$1.isReservedTag(id)) {
             warn(
               'Do not use built-in or reserved HTML elements as component ' +
               'id: ' + id
@@ -4380,7 +6080,7 @@ var builtInComponents = {
 function initGlobalAPI (Vue) {
   // config
   var configDef = {};
-  configDef.get = function () { return config; };
+  configDef.get = function () { return config$1; };
   {
     configDef.set = function () {
       warn(
@@ -4402,7 +6102,7 @@ function initGlobalAPI (Vue) {
 
   Vue.set = set;
   Vue.delete = del;
-  Vue.nextTick = nextTick;
+  Vue.nextTick = nextTick$1;
 
   Vue.options = Object.create(null);
   ASSET_TYPES.forEach(function (type) {
@@ -4864,8 +6564,8 @@ function createPatchFunction (backend) {
         if (
           !inPre &&
           !vnode.ns &&
-          !(config.ignoredElements.length && config.ignoredElements.indexOf(tag) > -1) &&
-          config.isUnknownElement(tag)
+          !(config$1.ignoredElements.length && config$1.ignoredElements.indexOf(tag) > -1) &&
+          config$1.isUnknownElement(tag)
         ) {
           warn(
             'Unknown custom element: <' + tag + '> - did you ' +
@@ -6257,7 +7957,7 @@ function enter (vnode, toggleDisplay) {
   var expectsCSS = css !== false && !isIE9;
   var userWantsControl = getHookArgumentsLength(enterHook);
 
-  var cb = el._enterCb = once(function () {
+  var cb = el._enterCb = once$1(function () {
     if (expectsCSS) {
       removeTransitionClass(el, toClass);
       removeTransitionClass(el, activeClass);
@@ -6360,7 +8060,7 @@ function leave (vnode, rm) {
     checkDuration(explicitLeaveDuration, 'leave', vnode);
   }
 
-  var cb = el._leaveCb = once(function () {
+  var cb = el._leaveCb = once$1(function () {
     if (el.parentNode && el.parentNode._pending) {
       el.parentNode._pending[vnode.key] = null;
     }
@@ -7058,7 +8758,7 @@ extend(Vue$3.options.directives, platformDirectives);
 extend(Vue$3.options.components, platformComponents);
 
 // install platform patch function
-Vue$3.prototype.__patch__ = inBrowser ? patch : noop;
+Vue$3.prototype.__patch__ = inBrowser ? patch : noop$1;
 
 // public mount method
 Vue$3.prototype.$mount = function (
@@ -7072,7 +8772,7 @@ Vue$3.prototype.$mount = function (
 // devtools global hook
 /* istanbul ignore next */
 setTimeout(function () {
-  if (config.devtools) {
+  if (config$1.devtools) {
     if (devtools) {
       devtools.emit('init', Vue$3);
     } else if ("development" !== 'production' && isChrome) {
@@ -7083,7 +8783,7 @@ setTimeout(function () {
     }
   }
   if ("development" !== 'production' &&
-    config.productionTip !== false &&
+    config$1.productionTip !== false &&
     inBrowser && typeof console !== 'undefined'
   ) {
     console[console.info ? 'info' : 'log'](
@@ -7699,14 +9399,14 @@ function cleanPath (path) {
   return path.replace(/\/\//g, '/')
 }
 
-var index$1$1 = Array.isArray || function (arr) {
+var index$1$2 = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
 /**
  * Expose `pathToRegexp`.
  */
-var index$1$2 = pathToRegexp;
+var index$3 = pathToRegexp;
 var parse_1 = parse;
 var compile_1 = compile;
 var tokensToFunction_1 = tokensToFunction;
@@ -7883,7 +9583,7 @@ function tokensToFunction (tokens) {
         }
       }
 
-      if (index$1$1(value)) {
+      if (index$1$2(value)) {
         if (!token.repeat) {
           throw new TypeError('Expected "' + token.name + '" to not repeat, but received `' + JSON.stringify(value) + '`')
         }
@@ -8034,7 +9734,7 @@ function stringToRegexp (path, keys, options) {
  * @return {!RegExp}
  */
 function tokensToRegExp (tokens, keys, options) {
-  if (!index$1$1(keys)) {
+  if (!index$1$2(keys)) {
     options = /** @type {!Object} */ (keys || options);
     keys = [];
   }
@@ -8110,7 +9810,7 @@ function tokensToRegExp (tokens, keys, options) {
  * @return {!RegExp}
  */
 function pathToRegexp (path, keys, options) {
-  if (!index$1$1(keys)) {
+  if (!index$1$2(keys)) {
     options = /** @type {!Object} */ (keys || options);
     keys = [];
   }
@@ -8121,17 +9821,17 @@ function pathToRegexp (path, keys, options) {
     return regexpToRegexp(path, /** @type {!Array} */ (keys))
   }
 
-  if (index$1$1(path)) {
+  if (index$1$2(path)) {
     return arrayToRegexp(/** @type {!Array} */ (path), /** @type {!Array} */ (keys), options)
   }
 
   return stringToRegexp(/** @type {string} */ (path), /** @type {!Array} */ (keys), options)
 }
 
-index$1$2.parse = parse_1;
-index$1$2.compile = compile_1;
-index$1$2.tokensToFunction = tokensToFunction_1;
-index$1$2.tokensToRegExp = tokensToRegExp_1;
+index$3.parse = parse_1;
+index$3.compile = compile_1;
+index$3.tokensToFunction = tokensToFunction_1;
+index$3.tokensToRegExp = tokensToRegExp_1;
 
 /*  */
 
@@ -8145,7 +9845,7 @@ function fillParams (
   try {
     var filler =
       regexpCompileCache[path] ||
-      (regexpCompileCache[path] = index$1$2.compile(path));
+      (regexpCompileCache[path] = index$3.compile(path));
     return filler(params || {}, { pretty: true })
   } catch (e) {
     {
@@ -8296,7 +9996,7 @@ function addRouteRecord (
 }
 
 function compileRouteRegex (path, pathToRegexpOptions) {
-  var regex = index$1$2(path, [], pathToRegexpOptions);
+  var regex = index$3(path, [], pathToRegexpOptions);
   {
     var keys = {};
     regex.keys.forEach(function (key) {
@@ -9072,7 +10772,7 @@ function resolveAsyncComponents (matched) {
         hasAsync = true;
         pending++;
 
-        var resolve = once$1(function (resolvedDef) {
+        var resolve = once$2(function (resolvedDef) {
           // save resolved on async factory in case it's used elsewhere
           def.resolved = typeof resolvedDef === 'function'
             ? resolvedDef
@@ -9084,7 +10784,7 @@ function resolveAsyncComponents (matched) {
           }
         });
 
-        var reject = once$1(function (reason) {
+        var reject = once$2(function (reason) {
           var msg = "Failed to resolve async component " + key + ": " + reason;
           "development" !== 'production' && warn$1(false, msg);
           if (!error) {
@@ -9140,7 +10840,7 @@ function flatten (arr) {
 // so the resolve/reject functions may get called an extra time
 // if the user uses an arrow function shorthand that happens to
 // return that Promise.
-function once$1 (fn) {
+function once$2 (fn) {
   var called = false;
   return function () {
     var arguments$1 = arguments;
@@ -10406,20 +12106,6 @@ var index_esm = {
   mapActions: mapActions
 };
 
-var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function commonjsRequire () {
-	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
-}
-
-function unwrapExports (x) {
-	return x && x.__esModule ? x['default'] : x;
-}
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
 var emitter = createCommonjsModule(function (module, exports) {
 "use strict";
 
@@ -11459,7 +13145,7 @@ var scrollBarWidth = void 0;
 
 });
 
-var index$2 = createCommonjsModule(function (module, exports) {
+var index$4 = createCommonjsModule(function (module, exports) {
 'use strict';
 
 exports.__esModule = true;
@@ -13140,7 +14826,7 @@ exports.default = {
       if (typeof options.onUpdate === 'function') {
         this.popperJS.onUpdate(options.onUpdate);
       }
-      this.popperJS._popper.style.zIndex = index$2.PopupManager.nextZIndex();
+      this.popperJS._popper.style.zIndex = index$4.PopupManager.nextZIndex();
       this.popperElm.addEventListener('click', stop);
     },
     updatePopper: function updatePopper() {
@@ -14118,9 +15804,9 @@ deepmerge.all = function deepmergeAll(array, optionsArgument) {
     })
 };
 
-var index$6 = deepmerge;
+var index$8 = deepmerge;
 
-var cjs = index$6;
+var cjs = index$8;
 
 var format = createCommonjsModule(function (module, exports) {
 'use strict';
@@ -14183,7 +15869,7 @@ var RE_NARGS = /(%|)\{([0-9a-zA-Z_]+)\}/g;
  */
 });
 
-var index$4 = createCommonjsModule(function (module, exports) {
+var index$6 = createCommonjsModule(function (module, exports) {
 'use strict';
 
 exports.__esModule = true;
@@ -14265,7 +15951,7 @@ exports.default = {
         args[_key] = arguments$1[_key];
       }
 
-      return index$4.t.apply(this, args);
+      return index$6.t.apply(this, args);
     }
   }
 };
@@ -14824,7 +16510,7 @@ module.exports =
 /***/ 61:
 /***/ function(module, exports) {
 
-	module.exports = index$4;
+	module.exports = index$6;
 
 /***/ },
 
@@ -18950,7 +20636,7 @@ exports["default"] = pattern;
 module.exports = exports['default'];
 });
 
-var index$11 = createCommonjsModule(function (module, exports) {
+var index$13 = createCommonjsModule(function (module, exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -18976,7 +20662,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19025,7 +20711,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19069,7 +20755,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19116,7 +20802,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -19158,7 +20844,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19202,7 +20888,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19247,7 +20933,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19292,7 +20978,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19337,7 +21023,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19381,7 +21067,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19427,7 +21113,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19474,7 +21160,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19509,7 +21195,7 @@ Object.defineProperty(exports, "__esModule", {
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 
 
@@ -19550,7 +21236,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
 
-var _rule2 = _interopRequireDefault(index$11);
+var _rule2 = _interopRequireDefault(index$13);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -19565,7 +21251,7 @@ exports["default"] = required;
 module.exports = exports['default'];
 });
 
-var index$9 = {
+var index$11 = {
   string: string_1,
   method: method_1,
   number: number_1,
@@ -19649,7 +21335,7 @@ function newMessages() {
 var messages = exports.messages = newMessages();
 });
 
-var index$7 = createCommonjsModule(function (module, exports) {
+var index$9 = createCommonjsModule(function (module, exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -19666,7 +21352,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
 
-var _validator2 = _interopRequireDefault(index$9);
+var _validator2 = _interopRequireDefault(index$11);
 
 
 
@@ -19772,7 +21458,7 @@ Schema.prototype = {
       options.messages = this.messages();
     }
 
-    options.error = index$11.error;
+    options.error = index$13.error;
     var arr = void 0;
     var value = void 0;
     var series = {};
@@ -20889,7 +22575,7 @@ exports.default = {
 
 var nestRE = /^(attrs|props|on|nativeOn|class|style|hook)$/;
 
-var index$13 = function mergeJSXProps (objs) {
+var index$15 = function mergeJSXProps (objs) {
   return objs.reduce(function (a, b) {
     var aa, bb, key, nestedKey, temp;
     for (key in b) {
@@ -22361,7 +24047,7 @@ module.exports =
 /* 14 */
 /***/ function(module, exports) {
 
-	module.exports = index$2;
+	module.exports = index$4;
 
 /***/ },
 /* 15 */
@@ -27393,7 +29079,7 @@ module.exports =
 /* 110 */
 /***/ function(module, exports) {
 
-	module.exports = index$4;
+	module.exports = index$6;
 
 /***/ },
 /* 111 */
@@ -37718,7 +39404,7 @@ module.exports =
 /* 213 */
 /***/ function(module, exports) {
 
-	module.exports = index$7;
+	module.exports = index$9;
 
 /***/ },
 /* 214 */
@@ -46327,7 +48013,7 @@ module.exports =
 /* 352 */
 /***/ function(module, exports) {
 
-	module.exports = index$13;
+	module.exports = index$15;
 
 /***/ },
 /* 353 */
@@ -51554,7 +53240,7 @@ var bind$1 = function bind(fn, thisArg) {
 
 // The _isBuffer check is for Safari 5-7 support, because it's missing
 // Object.prototype.constructor. Remove this eventually
-var index$16 = function (obj) {
+var index$18 = function (obj) {
   return obj != null && (isBuffer(obj) || isSlowBuffer(obj) || !!obj._isBuffer)
 };
 
@@ -51848,7 +53534,7 @@ function extend$1(a, b, thisArg) {
 var utils = {
   isArray: isArray,
   isArrayBuffer: isArrayBuffer,
-  isBuffer: index$16,
+  isBuffer: index$18,
   isFormData: isFormData,
   isArrayBufferView: isArrayBufferView,
   isString: isString,
@@ -51866,231 +53552,6 @@ var utils = {
   merge: merge$2,
   extend: extend$1,
   trim: trim
-};
-
-// shim for using process in browser
-// based off https://github.com/defunctzombie/node-process/blob/master/browser.js
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-var cachedSetTimeout = defaultSetTimout;
-var cachedClearTimeout = defaultClearTimeout;
-if (typeof global$1.setTimeout === 'function') {
-    cachedSetTimeout = setTimeout;
-}
-if (typeof global$1.clearTimeout === 'function') {
-    cachedClearTimeout = clearTimeout;
-}
-
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue$1 = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue$1 = currentQueue.concat(queue$1);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue$1.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue$1.length;
-    while(len) {
-        currentQueue = queue$1;
-        queue$1 = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue$1.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-function nextTick$1(fun) {
-    var arguments$1 = arguments;
-
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments$1[i];
-        }
-    }
-    queue$1.push(new Item(fun, args));
-    if (queue$1.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-}
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-var title = 'browser';
-var platform = 'browser';
-var browser = true;
-var env = {};
-var argv = [];
-var version = ''; // empty string to avoid regexp issues
-var versions = {};
-var release = {};
-var config$1 = {};
-
-function noop$1() {}
-
-var on = noop$1;
-var addListener = noop$1;
-var once$2 = noop$1;
-var off = noop$1;
-var removeListener = noop$1;
-var removeAllListeners = noop$1;
-var emit = noop$1;
-
-function binding(name) {
-    throw new Error('process.binding is not supported');
-}
-
-function cwd () { return '/' }
-function chdir (dir) {
-    throw new Error('process.chdir is not supported');
-}
-function umask() { return 0; }
-
-// from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
-var performance$1 = global$1.performance || {};
-var performanceNow =
-  performance$1.now        ||
-  performance$1.mozNow     ||
-  performance$1.msNow      ||
-  performance$1.oNow       ||
-  performance$1.webkitNow  ||
-  function(){ return (new Date()).getTime() };
-
-// generate timestamp or delta
-// see http://nodejs.org/api/process.html#process_process_hrtime
-function hrtime(previousTimestamp){
-  var clocktime = performanceNow.call(performance$1)*1e-3;
-  var seconds = Math.floor(clocktime);
-  var nanoseconds = Math.floor((clocktime%1)*1e9);
-  if (previousTimestamp) {
-    seconds = seconds - previousTimestamp[0];
-    nanoseconds = nanoseconds - previousTimestamp[1];
-    if (nanoseconds<0) {
-      seconds--;
-      nanoseconds += 1e9;
-    }
-  }
-  return [seconds,nanoseconds]
-}
-
-var startTime = new Date();
-function uptime() {
-  var currentTime = new Date();
-  var dif = currentTime - startTime;
-  return dif / 1000;
-}
-
-var process = {
-  nextTick: nextTick$1,
-  title: title,
-  browser: browser,
-  env: env,
-  argv: argv,
-  version: version,
-  versions: versions,
-  on: on,
-  addListener: addListener,
-  once: once$2,
-  off: off,
-  removeListener: removeListener,
-  removeAllListeners: removeAllListeners,
-  emit: emit,
-  binding: binding,
-  cwd: cwd,
-  chdir: chdir,
-  umask: umask,
-  hrtime: hrtime,
-  platform: platform,
-  release: release,
-  config: config$1,
-  uptime: uptime
 };
 
 var normalizeHeaderName = function normalizeHeaderName(headers, normalizedName) {
@@ -53063,7 +54524,7 @@ var default_1 = axios$1;
 
 axios_1.default = default_1;
 
-var index$15 = axios_1;
+var index$17 = axios_1;
 
 var moment = createCommonjsModule(function (module) {
 //! moment.js
@@ -56199,15 +57660,14 @@ function generateUUID() {
   });
 }
 
-var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-menu',{attrs:{"mode":"horizontal","router":true}},[_c('el-menu-item',{attrs:{"index":_vm.homePath},domProps:{"textContent":_vm._s(_vm.title)}}),_c('el-menu-item',{directives:[{name:"show",rawName:"v-show",value:(!_vm.isAuthenticated),expression:"!isAuthenticated"}],attrs:{"index":"signin"}},[_vm._v("サインイン")]),_c('el-submenu',{directives:[{name:"show",rawName:"v-show",value:(_vm.isAuthenticated),expression:"isAuthenticated"}],attrs:{"index":"acount"}},[_c('template',{slot:"title"},[_vm._v(_vm._s(_vm.fullName))]),_c('el-menu-item',{attrs:{"index":"/"},on:{"click":_vm.signout}},[_vm._v("サインアウト")])],2)],1),_c('div',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"id":"content","element-loading-text":"サインアウト中..."}},[_c('el-row',{staticStyle:{"padding-bottom":"8px"}},[_c('el-col',{staticClass:"bread",attrs:{"span":24}},[_c('el-breadcrumb',{attrs:{"separator":"/"}},_vm._l((_vm.breadlist),function(item,index){return _c('el-breadcrumb-item',{attrs:{"to":{path: item.path}}},[_c('i',{directives:[{name:"show",rawName:"v-show",value:(index===0),expression:"index===0"}],staticClass:"material-icons",staticStyle:{"font-size":"13px"}},[_vm._v("")]),_vm._v(_vm._s(item.name))])}))],1)],1),_c('router-view')],1),_vm._m(0)],1)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('footer',{attrs:{"id":"footer"}},[_vm._v("Copyright© 2016,2017 -"),_c('a',{attrs:{"href":"https://github.com/minotaka","target":"new"}},[_vm._v("Minoru Takayama")]),_vm._v("All Rights Reserved.")])}],_scopeId: 'data-v-5302ee71',
+var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoadingFull),expression:"nowLoadingFull"}],attrs:{"element-loading-text":_vm.loadingMessage}},[_c('el-menu',{attrs:{"mode":"horizontal","router":false}},[_c('el-menu-item',{attrs:{"index":"homePath"},domProps:{"textContent":_vm._s(_vm.title)},on:{"click":_vm.goHome}}),_c('el-menu-item',{directives:[{name:"show",rawName:"v-show",value:(!_vm.isAuthenticated),expression:"!isAuthenticated"}],staticClass:"header-menu",attrs:{"index":"signin"},on:{"click":_vm.signin}},[_vm._v("サインイン")]),_c('el-submenu',{directives:[{name:"show",rawName:"v-show",value:(_vm.isAuthenticated),expression:"isAuthenticated"}],staticClass:"header-menu",attrs:{"index":"acount"}},[_c('template',{slot:"title"},[_vm._v(_vm._s(_vm.fullName))]),_c('el-menu-item',{attrs:{"index":"config"},on:{"click":_vm.config}},[_vm._v("設定変更")]),_c('el-menu-item',{attrs:{"index":"sinout"},on:{"click":_vm.signout}},[_vm._v("サインアウト")])],2)],1),_c('div',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoading),expression:"nowLoading"}],attrs:{"id":"content","element-loading-text":_vm.loadingMessage}},[_c('el-row',{staticStyle:{"padding-bottom":"8px"}},[_c('el-col',{staticClass:"bread",attrs:{"span":24}},[_c('el-breadcrumb',{attrs:{"separator":"/"}},_vm._l((_vm.breadlist),function(item,index){return _c('el-breadcrumb-item',{attrs:{"to":{path: item.path}}},[_c('i',{directives:[{name:"show",rawName:"v-show",value:(index===0),expression:"index===0"}],staticClass:"material-icons",staticStyle:{"font-size":"13px"}},[_vm._v("")]),_vm._v(_vm._s(item.name))])}))],1)],1),_c('router-view')],1),_vm._m(0)],1)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('footer',{attrs:{"id":"footer"}},[_vm._v("Copyright© 2016,2017 -"),_c('a',{attrs:{"href":"https://github.com/minotaka","target":"new"}},[_vm._v("Minoru Takayama")]),_vm._v("All Rights Reserved.")])}],_scopeId: 'data-v-5302ee71',
   metaInfo: {
     title: '',
     titleTemplate: '%s - 発注在庫管理 for arcane'
   },
   data: function data() {
     return {
-      title: "発注在庫管理 for arcane",
-      loading: false
+      title: "発注在庫管理 for arcane"
     }
   },
   computed: {
@@ -56217,31 +57677,40 @@ var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm.
     fullName: function () {
       return this.$store.getters['fullName']
     },
-    homePath: function () {
-      if (this.$store.getters.isAuthenticated) {
-        return "/menu"
-      } else {
-        return "/"
-      }
-    },
     breadlist: function () {
       return this.$store.getters.getBreadlist
+    },
+    nowLoadingFull: function () {
+      return this.$store.getters.nowLoadingFull
+    },
+    nowLoading: function () {
+      return this.$store.getters.nowLoading
+    },
+    loadingMessage: function () {
+      return this.$store.getters.loadingMessage
     }
   },
   methods: {
     goHome: function goHome() {
-      if (!this.$store.getters.isAuthenticated) {
+      this.$store.dispatch('endLoading');
+      //if (this.$store.getters.isAuthenticated) {
+      //  this.$router.push('/menu')
+      //} else {
         this.$router.push('/');
-      } else {
-        this.$router.push('/menu');
-      }
+      //}
+    },
+    config: function config() {
+      this.$router.push('/config');
+    },
+    signin: function signin() {
+      this.$router.push('/signin');
     },
     signout: function signout() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingFull','サインアウト中...');
       this.$store.dispatch('signOut').then(function () {
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
         this$1.$router.push('/');
       });
     }
@@ -56257,7 +57726,7 @@ var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm.
   }
 };
 
-var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")])])}],_scopeId: 'data-v-c8f7c99c',
+var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")]),_c('hr'),_c('div',[_vm._v("IE11は対応は考慮しておりますが、全画面での動作は保証できません。")]),_c('div',[_vm._v("また、IE9以降であれば動作はするとは思われますが、IE11以外は動作保証外となります。")])])}],_scopeId: 'data-v-c8f7c99c',
   metaInfo: {
     title: 'Welcome'
   },
@@ -56265,6 +57734,9 @@ var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
     this.$store.commit('setBreadcrumb',
       { path: '/', name: 'WELCOME' }
     );
+    if (this.$store.getters.isAuthenticated) {
+      this.$router.replace('/menu');
+    }
   },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
@@ -56275,7 +57747,8 @@ var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
   }
 };
 
-var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{directives:[{name:"loading",rawName:"v-loading.body",value:(_vm.loading),expression:"loading",modifiers:{"body":true}}],ref:"signinForm",attrs:{"model":_vm.signinForm,"rules":_vm.checkRules,"element-loading-text":"サインイン中..."}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"inputId"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.signinForm.inputId),callback:function ($$v) {_vm.signinForm.inputId=$$v;},expression:"signinForm.inputId"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"password"}},[_c('el-input',{attrs:{"type":"password"},model:{value:(_vm.signinForm.password),callback:function ($$v) {_vm.signinForm.password=$$v;},expression:"signinForm.password"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('signinForm');}}},[_vm._v("サインイン")]),_c('el-button',{on:{"click":function($event){_vm.resetForm('signinForm');}}},[_vm._v("リセット")])],1)],1),_c('el-dialog',{attrs:{"title":"サインインに失敗しました","visible":_vm.dialogVisible,"size":"tiny"},on:{"update:visible":function($event){_vm.dialogVisible=$event;}}},[_c('span',[_vm._v("サインインに失敗しました")]),_c('div',{domProps:{"textContent":_vm._s(_vm.dialogMessage)}}),_c('span',{staticClass:"dialog-footer",slot:"footer"},[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.dialogVisible = false;}}},[_vm._v("OK")])],1)])],1)},staticRenderFns: [],_scopeId: 'data-v-ed7fec10',
+var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{ref:"signinForm",attrs:{"model":_vm.signinForm,"rules":_vm.checkRules,"onSubmit":"return false;"}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"inputId"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.signinForm.inputId),callback:function ($$v) {_vm.signinForm.inputId=$$v;},expression:"signinForm.inputId"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"password"}},[_c('el-input',{attrs:{"type":"password"},model:{value:(_vm.signinForm.password),callback:function ($$v) {_vm.signinForm.password=$$v;},expression:"signinForm.password"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary","native-type":"submit"},on:{"click":function($event){_vm.submitForm('signinForm');}}},[_vm._v("サインイン")]),_c('el-button',{on:{"click":function($event){_vm.resetForm('signinForm');}}},[_vm._v("リセット")])],1)],1),_c('el-dialog',{attrs:{"title":"サインインに失敗しました","visible":_vm.dialogVisible,"size":"tiny"},on:{"update:visible":function($event){_vm.dialogVisible=$event;}}},[_c('span',[_vm._v("サインインに失敗しました")]),_c('div',{domProps:{"textContent":_vm._s(_vm.dialogMessage)}}),_c('span',{staticClass:"dialog-footer",slot:"footer"},[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.dialogVisible = false;}}},[_vm._v("OK")])],1)])],1)},staticRenderFns: [],_scopeId: 'data-v-ed7fec10',
+  props: ['redirect'],
   metaInfo: {
     title: 'サインイン',
   },
@@ -56294,11 +57767,8 @@ var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
         ]
       },
       dialogVisible: false,
-      dialogMessage: "",
-      loading: false
+      dialogMessage: ""
     }
-  },
-  computed: {
   },
   methods: {
     submitForm: function submitForm(formName) {
@@ -56306,16 +57776,21 @@ var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
 
       this.$refs[formName].validate(function (valid) {
         if (valid) {
-          this$1.loading = true;
+          this$1.$store.dispatch('nowLoadingFull', 'サインイン中...');
           this$1.$store.dispatch('signin', this$1.signinForm).then(function () {
-            this$1.loading = false;
+            this$1.$store.dispatch('endLoading');
             if (this$1.$store.getters.isAuthenticated) {
-              this$1.$router.push('/menu');
+              if (this$1.redirect === undefined || this$1.redirect === "" || this$1.redirect === null) {
+                this$1.$router.push('/menu');
+              } else {
+                this$1.$router.push(this$1.redirect);
+              }
             } else {
               this$1.dialogVisible = true;
-              this$1.dialogMessage = "入力内容を見直してください";
+              this$1.dialogMessage = "入力内容に誤りがあります。入力内容を見直してください";
             }
           });
+          return true
         } else {
           return false
         }
@@ -56382,16 +57857,17 @@ var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm
   }
 };
 
-var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',[_c('el-col',{attrs:{"xs":8,"sm":6,"md":4,"lg":3}},[_c('el-menu',{attrs:{"mode":"vertical","theme":"dark","router":true}},[_c('el-menu-item',{attrs:{"index":"/mainte"}},[_vm._v("管理メニュー")]),_c('el-menu-item',{attrs:{"index":"/mainte/users"}},[_vm._v("ユーザーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/roles"}},[_vm._v("ロールメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/makers"}},[_vm._v("メーカーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/products"}},[_vm._v("商品メンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/groups"}},[_vm._v("グループメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/dashboards"}},[_vm._v("ダッシュボードメンテ")])],1)],1),_c('el-col',{attrs:{"xs":16,"sm":18,"md":20,"lg":21}},[_c('router-view')],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-4155bba6',
+var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',[_c('el-col',{attrs:{"xs":8,"sm":6,"md":4,"lg":3}},[_c('el-menu',{attrs:{"mode":"vertical","theme":"dark","router":true}},[_c('el-menu-item',{attrs:{"index":"/mainte"}},[_vm._v("管理メニュー")]),_c('el-menu-item',{attrs:{"index":"/mainte/users"}},[_vm._v("ユーザーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/roles"}},[_vm._v("ロールメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/makers"}},[_vm._v("メーカーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/products"}},[_vm._v("商品メンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/groups"}},[_vm._v("グループメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/dashboards"}},[_vm._v("ダッシュボードメンテ")])],1)],1),_c('el-col',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoading),expression:"nowLoading"}],attrs:{"xs":16,"sm":18,"md":20,"lg":21,"element-loading-text":_vm.loadingMessage}},[_c('router-view')],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-4155bba6',
   metaInfo: {
     title: '管理機能',
   },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      //vm.$store.commit('changeBreadcrumb',
-      //  { path: '/mainte', name: '管理画面' }
-      //)
-    });
+  computed: {
+    nowLoading: function () {
+      return this.$store.getters.nowLoadingMainte
+    },
+    loadingMessage: function () {
+      return this.$store.getters.loadingMessage
+    }
   }
 };
 
@@ -56408,19 +57884,16 @@ var MainteMenu = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
   }
 };
 
-var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-button',{on:{"click":_vm.useradd}},[_vm._v("新規登録")]),_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.users,"stripe":"","height":"480","element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"userName","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"ユーザー名","min-width":"200"}}),_c('el-table-column',{attrs:{"prop":"expiration","label":"有効期限","sortable":"","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.expiration)))])]}}])}),_c('el-table-column',{attrs:{"prop":"email","label":"メールアドレス","min-width":"300"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("boolMessage")(scope.row.enabled,'許可', '不可')))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])}),_c('el-table-column',{attrs:{"label":"機能","fixed":"left","width":"200"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.edit(scope.row.id);}}},[_vm._v("edit")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.role(scope.row.id);}}},[_vm._v("role")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.maker(scope.row.id);}}},[_vm._v("maker")])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-760b4f99',
+var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-button',{on:{"click":_vm.useradd}},[_vm._v("新規登録")]),_c('el-table',{attrs:{"data":_vm.users,"stripe":"","height":"480"}},[_c('el-table-column',{attrs:{"prop":"userName","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"ユーザー名","min-width":"200"}}),_c('el-table-column',{attrs:{"prop":"expiration","label":"有効期限","sortable":"","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.expiration)))])]}}])}),_c('el-table-column',{attrs:{"prop":"email","label":"メールアドレス","min-width":"300"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("boolMessage")(scope.row.enabled,'許可', '不可')))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])}),_c('el-table-column',{attrs:{"label":"機能","fixed":"left","width":"200"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.edit(scope.row.id);}}},[_vm._v("edit")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.role(scope.row.id);}}},[_vm._v("role")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.maker(scope.row.id);}}},[_vm._v("maker")])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-760b4f99',
   metaInfo: {
     title: 'ユーザー管理',
   },
   data: function data() {
     return {
-      loading: false,
       users: [],
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
     }
-  },
-  computed: {
   },
   methods: {
     filterEnabled: function filterEnabled(value, row) {
@@ -56432,14 +57905,14 @@ var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
     getUsers: function getUsers() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
       this.$store.dispatch('maintenance/getUsers').then(function (response) {
         var items = response.data;
         this$1.users = this$1.minotaka.makeArray(items);
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       });
     },
     edit: function edit(id) {
@@ -56452,7 +57925,7 @@ var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
       this.$router.push({ name: 'usermakers', params: { id: id } });
     },
     useradd: function useradd() {
-      this.$router.push('useradd');
+      this.$router.push({ name: 'useradd' });
     }
   },
   created: function created() {
@@ -56546,20 +58019,19 @@ var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/useredit/' + vm.id, name: 'ユーザー編集' },
+        { path: '/mainte/users/' + vm.id + '/edit', name: 'ユーザー編集' },
         vm.getUser()
       );
     });
   }
 };
 
-var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{directives:[{name:"loading",rawName:"v-loading.body",value:(_vm.loading),expression:"loading",modifiers:{"body":true}}],ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules,"element-loading-text":"処理中"}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("登録")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-79649572',
+var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("登録")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-79649572',
   metaInfo: {
     title: 'ユーザー登録',
   },
   data: function data() {
     return {
-      loading: false,
       user: {
         id: 0,
         userName: null,
@@ -56595,22 +58067,20 @@ var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=
       }
     }
   },
-  computed: {
-  },
   methods: {
     submitForm: function submitForm(formName) {
       var this$1 = this;
 
       this.$refs[formName].validate(function (valid) {
         if (valid) {
-          this$1.loading = true;
+          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報登録中');
           this$1.$store.dispatch('maintenance/addUser', this$1.user).then(function (response) {
             this$1.$notify({ title: '登録完了', message: 'ユーザーの登録を行いました' });
-            this$1.loading = false;
+            this$1.$store.dispatch('endLoading');
             this$1.$router.go(-1);
           }).catch(function (error) {
             this$1.$notify.error({ title: 'Error', message: error.message });
-            this$1.loading = false;
+            this$1.$store.dispatch('endLoading');
           });
         } else {
           return false
@@ -56624,7 +58094,7 @@ var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/useradd/', name: 'ユーザー登録' }
+        { path: '/mainte/users/add', name: 'ユーザー登録' }
       );
     });
   }
@@ -56647,53 +58117,42 @@ var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _
     getUser: function getUser() {
       var this$1 = this;
 
-      this.loading = true;
-      this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
-        var item = response.data;
-        this$1.user = this$1.minotaka.makeSingleType(item, "object");
-        this$1.loading = false;
+      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
+        this$1.user = this$1.minotaka.makeSingleType(response.data, "object");
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
-      });
+      })
     },
     getUserRoles: function getUserRoles() {
       var this$1 = this;
 
-      this.loading = true;
-      this.$store.dispatch('maintenance/getUserRoles', this.id).then(function (response) {
-        var items = response.data;
-        this$1.roles = this$1.minotaka.makeArray(items, "string");
+      return this.$store.dispatch('maintenance/getUserRoles', this.id).then(function (response) {
+        this$1.roles = this$1.minotaka.makeArray(response.data, "string");
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
-      });
+      })
     },
     getRoles: function getRoles() {
       var this$1 = this;
 
-      this.loading = true;
       this.roleList = [];
-      this.$store.dispatch('maintenance/getRoleList').then(function (response) {
-        var items = this$1.minotaka.makeArray(response.data);
-        this$1.roleList = items;
-        this$1.loading = false;
+      return this.$store.dispatch('maintenance/getRoleList').then(function (response) {
+        this$1.roleList = this$1.minotaka.makeArray(response.data);
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
-      });
+      })
     },
     submitForm: function submitForm() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
       this.$store.dispatch('maintenance/setUserRoles', { id: this.id, roles: this.roles }).then(function (response) {
         this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
         this$1.$router.go(-1);
       }).catch(function (error) {
+        this$1.$store.dispatch('endLoading');
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
       });
     },
     cancel: function cancel() {
@@ -56702,12 +58161,16 @@ var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _
   },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
-      vm.getUser(),
-        vm.getRoles(),
-        vm.getUserRoles(),
-        vm.$store.commit('changeBreadcrumb',
-          { path: '/mainte/userroles/' + vm.id, name: 'ユーザー権限' }
-        );
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      vm.getUser();
+      vm.getRoles().then(function () {
+        vm.getUserRoles().then(function () {
+          vm.$store.dispatch('endLoading');
+        });
+      });
+      vm.$store.commit('changeBreadcrumb',
+        { path: '/mainte/users/' + vm.id + '/roles', name: 'ユーザー権限' }
+      );
     });
   }
 };
@@ -59791,11 +61254,10 @@ var linq = createCommonjsModule(function (module) {
 var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-row',[_c('el-col',{attrs:{"span":12}},[_c('el-table',{staticStyle:{"width":"100%"},attrs:{"data":_vm.makers,"height":"400"}},[_c('el-table-column',{attrs:{"label":"担当メーカー"}},[_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1),_c('el-col',{attrs:{"span":12}},[_c('el-table',{ref:"multipleTable",staticStyle:{"width":"100%"},attrs:{"data":_vm.makerList,"height":"400"},on:{"selection-change":_vm.selectChange}},[_c('el-table-column',{attrs:{"label":"メーカー一覧"}},[_c('el-table-column',{attrs:{"type":"selection","width":"55"}}),_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1)],1),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-d792c30e',
   props: ['id'],
   metaInfo: {
-    title: 'ユーザー権限',
+    title: 'ユーザーメーカー',
   },
   data: function data() {
     return {
-      loading: false,
       user: {},
       makers: [],
       myMakers: [],
@@ -59806,33 +61268,26 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
     getUser: function getUser() {
       var this$1 = this;
 
-      this.loading = true;
       return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
         var item = response.data;
         this$1.user = this$1.minotaka.makeSingleType(item, "object");
-        this$1.loading = false;
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
       })
     },
     getMakers: function getMakers() {
       var this$1 = this;
 
-      this.loading = true;
       return this.$store.dispatch('maintenance/getMakerList').then(function (response) {
         var items = this$1.minotaka.makeArray(response.data);
         this$1.makerList = linq.from(items).orderBy(function (x) { return x.code; }).toArray();
-        this$1.loading = false;
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
       })
     },
     getUserMakers: function getUserMakers() {
       var this$1 = this;
 
-      this.loading = true;
       return this.$store.dispatch('maintenance/getUserMakers', this.id).then(function (response) {
         var items = response.data;
         this$1.myMakers = this$1.minotaka.makeArray(items, "object");
@@ -59843,20 +61298,19 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
         });
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
       })
     },
     submitForm: function submitForm() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
       this.$store.dispatch('maintenance/setUserMakers', { id: this.id, makers: this.makers }).then(function (response) {
         this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
         this$1.$router.go(-1);
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       });
     },
     cancel: function cancel() {
@@ -59868,12 +61322,16 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
   },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
-      vm.getUser(),
-        vm.getMakers().then(function () {
-          vm.getUserMakers();
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      vm.getUser();
+      vm.getMakers().then(function () {
+        vm.getUserMakers().then(function () {
+          vm.$store.dispatch('endLoading');
+
         });
+      });
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/userroles/' + vm.id, name: 'ユーザー権限' }
+        { path: '/mainte/users/' + vm.id + '/makers', name: 'ユーザーメーカー' }
       );
     });
   }
@@ -59925,13 +61383,12 @@ var Roles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
   }
 };
 
-var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.makers,"height":"480","element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用許可","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"label":"機能","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.changeMaker(scope.row);}}},[_vm._v(_vm._s(scope.row.enabled ? '不許可':'許可'))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.deletedFilters,"filter-method":_vm.filterDeleted,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-045fc024',
+var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-table',{attrs:{"data":_vm.makers,"height":"480"}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用許可","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"label":"機能","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.changeMaker(scope.row);}}},[_vm._v(_vm._s(scope.row.enabled ? '不許可':'許可'))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.deletedFilters,"filter-method":_vm.filterDeleted,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-045fc024',
   metaInfo: {
     title: 'メーカー管理',
   },
   data: function data() {
     return {
-      loading: false,
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不許可', value: 'false' }],
       deletedFilters: [{ text: '削除済み', value: 'true' }, { text: '未削除', value: 'false' }],
       makers: []
@@ -59949,27 +61406,27 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
     changeMaker: function changeMaker(maker) {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'メーカー情報更新中');
       maker.enabled = maker.enabled ? false : true;
       this.$store.dispatch('maintenance/setMakers', maker).then(function (response) {
         this$1.getMaker();
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       });
     },
     getMaker: function getMaker() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'メーカー情報処理中');
       this.$store.dispatch('maintenance/getMakers').then(function (response) {
         var items = this$1.minotaka.makeArray(response.data);
         this$1.makers = linq.from(items).orderBy(function (x) { return x.code; }).toArray();
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       });
     }
   },
@@ -59988,13 +61445,12 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
   }
 };
 
-var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('data-tables',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.products,"border":false,"element-loading-text":"Loading...","search-def":_vm.searchDefine,"pagination-def":_vm.pageDefine,"has-action-col":false,"checkbox-filter-def":_vm.filterDefine}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"110"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"makerCode","label":"メーカー","sortable":""},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(scope.row.makerCode)+" - "+_vm._s(scope.row.makerName))])]}}])}),_c('el-table-column',{attrs:{"prop":"quantity","label":"入り数","width":"90","align":"right"}}),_c('el-table-column',{attrs:{"prop":"isSoldWeight","label":"計量","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.isSoldWeight?'計量':'－')}})]}}])}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-61d6d063',
+var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('data-tables',{attrs:{"data":_vm.products,"border":false,"search-def":_vm.searchDefine,"pagination-def":_vm.pageDefine,"has-action-col":false,"checkbox-filter-def":_vm.filterDefine}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"110"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"makerCode","label":"メーカー","sortable":""},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(scope.row.makerCode)+" - "+_vm._s(scope.row.makerName))])]}}])}),_c('el-table-column',{attrs:{"prop":"quantity","label":"入り数","width":"90","align":"right"}}),_c('el-table-column',{attrs:{"prop":"isSoldWeight","label":"計量","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.isSoldWeight?'計量':'－')}})]}}])}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-61d6d063',
   metaInfo: {
     title: '商品管理',
   },
   data: function data() {
     return {
-      loading: false,
       searchDefine: { props: ['code', 'name'], placeholder: 'コードと名称で絞り込む' },
       pageDefine: { pageSize: 10, pageSizes: [10, 15, 30, 50] },
       filterDefine: {
@@ -60038,14 +61494,14 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
     getProducts: function getProducts() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', '商品情報処理中');
       this.$store.dispatch('maintenance/getProducts').then(function (response) {
         var items = this$1.minotaka.makeArray(response.data);
         this$1.products = linq.from(items).orderBy(function (x) { return x.code; }).toArray();
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       });
     }
   },
@@ -60069,27 +61525,28 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
 // MaintenanceComponents
 var routes = [
   { path: '/', component: Wellcome },
-  { path: '/signin', component: SignIn },
-  { path: '/menu', component: Menu },
+  { path: '/signin', component: SignIn, props: function (route) { return ({ redirect: route.query.redirect }); } },
+  { path: '/menu', component: Menu, meta: { requiresAuth: true } },
   {
     path: '/mainte', component: Maintenance,
     children: [
       { path: '', redirect: 'maintemenu' },
       { path: 'maintemenu', component: MainteMenu },
       { path: 'users', component: Users },
-      { path: 'useredit/:id', component: UserEdit, name: 'useredit', props: true },
-      { path: 'useradd', component: UserAdd },
-      { path: 'userroles/:id', component: UserRoles, name: 'userroles', props: true },
-      { path: 'usermakers/:id', component: UserMakers, name: 'usermakers', props: true },
+      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true },
+      { path: 'users/add', component: UserAdd, name: 'useradd' },
+      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true },
+      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true },
       { path: 'roles', component: Roles },
       { path: 'makers', component: Makers },
       { path: 'products', component: Products }
-    ]
+    ],
+    meta: { requiresAuth: true }
   },
   { path: '*', redirect: '/' }
 ];
 
-var index$18 = createCommonjsModule(function (module, exports) {
+var index$20 = createCommonjsModule(function (module, exports) {
 /**
  * lodash (Custom Build) <https://lodash.com/>
  * Build: `lodash modularize exports="npm" -o ./`
@@ -62305,7 +63762,7 @@ function stubFalse() {
 module.exports = merge;
 });
 
-var index$20 = createCommonjsModule(function (module) {
+var index$22 = createCommonjsModule(function (module) {
 (function (root, factory){
   'use strict';
 
@@ -62606,7 +64063,7 @@ var vuexPersistedstate$1 = createCommonjsModule(function (module, exports) {
  * file that was distributed with this source code.
  */
 (function (global, factory) {
-  module.exports = factory(index$18, index$20);
+  module.exports = factory(index$20, index$22);
 }(commonjsGlobal, (function (merge,objectPath) { 'use strict';
 
 merge = 'default' in merge ? merge['default'] : merge;
@@ -62705,6 +64162,32 @@ var actions = {
     var state = ref.state;
 
     return Vue$3.axios.get("api/dashboards")
+  },
+  endLoading: function endLoading(ref) {
+    var commit = ref.commit;
+
+    commit('fullLoadingShow', false);
+    commit('loadingShow', false);
+    commit('mainteLoadingShow', false);
+    commit('loadingMessage', "");
+  },
+  nowLoading: function nowLoading(ref, message) {
+    var commit = ref.commit;
+
+    commit('loadingMessage', message);
+    commit('loadingShow', true);
+  },
+  nowLoadingFull: function nowLoadingFull(ref, message) {
+    var commit = ref.commit;
+
+    commit('loadingMessage', message);
+    commit('fullLoadingShow', true);
+  },
+  nowLoadingMainte: function nowLoadingMainte(ref, message) {
+    var commit = ref.commit;
+
+    commit('loadingMessage', message);
+    commit('mainteLoadingShow', true);
   }
 };
 
@@ -62723,12 +64206,36 @@ var mutations = {
     }
     newlist.push(item);
     state.breadlist = newlist;
+  },
+  fullLoadingShow: function fullLoadingShow(state, item) {
+    state.fullLoadingShow = item;
+  },
+  loadingShow: function loadingShow(state, item) {
+    state.loadingShow = item;
+  },
+  mainteLoadingShow: function mainteLoadingShow(state, item) {
+    state.mainteLoadingShow = item;
+  },
+  loadingMessage: function loadingMessage(state, item) {
+    state.loadingMessage = item;
   }
 };
 
 var getters = {
   getBreadlist: function getBreadlist(state, getters, rootState) {
     return state.breadlist
+  },
+  nowLoadingFull: function nowLoadingFull(state, getters, rootState) {
+    return state.fullLoadingShow
+  },
+  nowLoading: function nowLoading(state, getters, rootState) {
+    return state.loadingShow
+  },
+  nowLoadingMainte: function nowLoadingMainte(state, getters, rootState) {
+    return state.mainteLoadingShow
+  },
+  loadingMessage: function loadingMessage(state, getters, rootState) {
+    return state.loadingMessage || "処理中です"
   }
 };
 
@@ -65019,7 +66526,11 @@ var store$1 = new index_esm.Store({
   mutations: mutations,
   getters: getters,
   state: {
-    breadlist: []
+    breadlist: [],
+    fullLoadingShow: false,
+    loadingShow: false,
+    mainteLoadingShow: false,
+    loadingMessage: null
   },
   plugins: [
     vuexPersistedstate$1({ storage: window.sessionStorage })
@@ -65096,6 +66607,7 @@ var minotakaPlugins = {
   }
 };
 
+// polyfills
 // Vue関連
 // 追加機能
 // ライブラリ
@@ -65105,16 +66617,16 @@ Vue$3.use(ElementUI, { locale: locale$2 });
 Vue$3.use(VueRouter);
 Vue$3.use(VueLocalStorage, { namespace: 'vuejs__' });
 Vue$3.use(vueMeta);
-Vue$3.use(vueAxios_min, index$15);
+Vue$3.use(vueAxios_min, index$17);
 Vue$3.use(DataTables);
-Vue$3.config.performance = true;
+Vue$3.config.performance = false;
 
 // moment設定
 moment.locale('ja');
 
 // axios設定
-index$15.defaults.baseURL = "http://192.168.6.60/OrderStockManager/";
-index$15.interceptors.request.use(function (config) {
+index$17.defaults.baseURL = "http://192.168.6.60/OrderStockManager/";
+index$17.interceptors.request.use(function (config) {
   if (store$1.getters.isAuthenticated) {
     config.headers['Authorization'] = "bearer " + Vue$3.ls.get("bearer", "");
   } else {
@@ -65124,7 +66636,7 @@ index$15.interceptors.request.use(function (config) {
 }, function (error) {
   return Promise.reject(error)
 });
-index$15.interceptors.response.use(function (response) {
+index$17.interceptors.response.use(function (response) {
   return response;
 }, function (error) {
   return Promise.reject(error);
@@ -65163,6 +66675,18 @@ Vue$3.filter('boolMessage', function (value, trueMessage, falseMessage) {
 var router = new VueRouter({
   scrollBehavior: function (to, from, savedPosition) { return ({ x: 0, y: 0 }); },
   routes: routes
+});
+
+router.beforeEach(function (to, from, next) {
+  if (to.matched.some(function (record) { return record.meta.requiresAuth; })) {
+    if (!store$1.getters.isAuthenticated) {
+      next({ path: '/signin', query: { redirect: to.fullPath } });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 var app = new Vue$3({

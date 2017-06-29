@@ -25,11 +25,10 @@ import Enumerable from 'linq';
 export default {
   props: ['id'],
   metaInfo: {
-    title: 'ユーザー権限',
+    title: 'ユーザーメーカー',
   },
   data() {
     return {
-      loading: false,
       user: {},
       makers: [],
       myMakers: [],
@@ -38,29 +37,22 @@ export default {
   },
   methods: {
     getUser() {
-      this.loading = true
       return this.$store.dispatch('maintenance/getUser', this.id).then((response) => {
         var item = response.data
         this.user = this.minotaka.makeSingleType(item, "object")
-        this.loading = false
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     getMakers() {
-      this.loading = true
       return this.$store.dispatch('maintenance/getMakerList').then((response) => {
         var items = this.minotaka.makeArray(response.data)
         this.makerList = Enumerable.from(items).orderBy(x => x.code).toArray()
-        this.loading = false
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     getUserMakers() {
-      this.loading = true
       return this.$store.dispatch('maintenance/getUserMakers', this.id).then((response) => {
         var items = response.data
         this.myMakers = this.minotaka.makeArray(items, "object")
@@ -71,18 +63,17 @@ export default {
         })
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     submitForm() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中')
       this.$store.dispatch('maintenance/setUserMakers', { id: this.id, makers: this.makers }).then((response) => {
         this.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' })
-        this.loading = false
+        this.$store.dispatch('endLoading')
         this.$router.go(-1)
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
+        this.$store.dispatch('endLoading')
       })
     },
     cancel() {
@@ -94,12 +85,16 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      vm.getUser(),
-        vm.getMakers().then(() => {
-          vm.getUserMakers()
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
+      vm.getUser()
+      vm.getMakers().then(() => {
+        vm.getUserMakers().then(() => {
+          vm.$store.dispatch('endLoading')
+
         })
+      })
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/userroles/' + vm.id, name: 'ユーザー権限' }
+        { path: '/mainte/users/' + vm.id + '/makers', name: 'ユーザーメーカー' }
       )
     })
   }

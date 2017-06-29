@@ -1,7 +1,6 @@
 <template lang="pug">
 div
   data-tables(:data="products" :border="false"
-    v-loading="loading" element-loading-text="Loading..."
     :search-def="searchDefine"
     :pagination-def="pageDefine" :has-action-col='false'
     :checkbox-filter-def="filterDefine")
@@ -30,7 +29,6 @@ export default {
   },
   data() {
     return {
-      loading: false,
       searchDefine: { props: ['code', 'name'], placeholder: 'コードと名称で絞り込む' },
       pageDefine: { pageSize: 10, pageSizes: [10, 15, 30, 50] },
       filterDefine: {
@@ -72,14 +70,14 @@ export default {
       return row.deleted.toString() === value
     },
     getProducts() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', '商品情報処理中')
       this.$store.dispatch('maintenance/getProducts').then((response) => {
         var items = this.minotaka.makeArray(response.data)
         this.products = Enumerable.from(items).orderBy(x => x.code).toArray()
-        this.loading = false
+        this.$store.dispatch('endLoading')
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
+        this.$store.dispatch('endLoading')
       })
     }
   },

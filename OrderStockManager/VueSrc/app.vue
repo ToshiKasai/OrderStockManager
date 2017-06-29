@@ -1,12 +1,13 @@
 ﻿<template lang="pug">
-div
-  el-menu(mode="horizontal" :router="true")
-    el-menu-item(:index="homePath" v-text="title")
-    el-menu-item(index="signin" v-show="!isAuthenticated") サインイン
-    el-submenu(index="acount" v-show="isAuthenticated")
+div(v-loading="nowLoadingFull" :element-loading-text="loadingMessage")
+  el-menu(mode="horizontal" :router="false")
+    el-menu-item(index="homePath" v-text="title" @click="goHome")
+    el-menu-item.header-menu(index="signin" v-show="!isAuthenticated" @click="signin") サインイン
+    el-submenu.header-menu(index="acount" v-show="isAuthenticated")
       template(slot="title") {{fullName}}
-      el-menu-item(index="/" @click="signout") サインアウト
-  #content(v-loading="loading" element-loading-text="サインアウト中...")
+      el-menu-item(index="config" @click="config") 設定変更
+      el-menu-item(index="sinout" @click="signout") サインアウト
+  #content(v-loading="nowLoading" :element-loading-text="loadingMessage")
     el-row(style="padding-bottom:8px;")
       el-col.bread(:span="24")
         el-breadcrumb(separator="/")
@@ -29,8 +30,7 @@ export default {
   },
   data() {
     return {
-      title: "発注在庫管理 for arcane",
-      loading: false
+      title: "発注在庫管理 for arcane"
     }
   },
   computed: {
@@ -40,29 +40,38 @@ export default {
     fullName: function () {
       return this.$store.getters['fullName']
     },
-    homePath: function () {
-      if (this.$store.getters.isAuthenticated) {
-        return "/menu"
-      } else {
-        return "/"
-      }
-    },
     breadlist: function () {
       return this.$store.getters.getBreadlist
+    },
+    nowLoadingFull: function () {
+      return this.$store.getters.nowLoadingFull
+    },
+    nowLoading: function () {
+      return this.$store.getters.nowLoading
+    },
+    loadingMessage: function () {
+      return this.$store.getters.loadingMessage
     }
   },
   methods: {
     goHome() {
-      if (!this.$store.getters.isAuthenticated) {
+      this.$store.dispatch('endLoading')
+      //if (this.$store.getters.isAuthenticated) {
+      //  this.$router.push('/menu')
+      //} else {
         this.$router.push('/')
-      } else {
-        this.$router.push('/menu')
-      }
+      //}
+    },
+    config() {
+      this.$router.push('/config')
+    },
+    signin() {
+      this.$router.push('/signin')
     },
     signout() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingFull','サインアウト中...')
       this.$store.dispatch('signOut').then(() => {
-        this.loading = false
+        this.$store.dispatch('endLoading')
         this.$router.push('/')
       })
     }
@@ -81,7 +90,8 @@ export default {
 
 <style lang="scss" scoped>
 #content {
-  margin: 8px 8px 25px+8px 8px;
+  margin: 0 0 25px 0;
+  padding: 8px 16px 8px 16px;
 }
 
 #footer {
@@ -98,5 +108,11 @@ export default {
   background-color: #EFF2F7;
   border-radius: 4px 4px 0 0;
   padding: 8px 0 8px 4px;
+}
+
+.header-menu {
+  float: right!important;
+  margin-right: 16px;
+  padding-right: 16px;
 }
 </style>

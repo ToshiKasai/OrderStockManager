@@ -1,7 +1,7 @@
 ﻿<template lang="pug">
 div
   el-button(@click="useradd") 新規登録
-  el-table(:data="users" stripe height="480" v-loading="loading" element-loading-text="Loading...")
+  el-table(:data="users" stripe height="480")
     el-table-column(prop="userName" label="コード" sortable width="150")
     el-table-column(prop="name" label="ユーザー名" min-width="200")
     el-table-column(prop="expiration" label="有効期限" sortable width="150")
@@ -28,13 +28,10 @@ export default {
   },
   data() {
     return {
-      loading: false,
       users: [],
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
     }
-  },
-  computed: {
   },
   methods: {
     filterEnabled(value, row) {
@@ -44,14 +41,14 @@ export default {
       return row.deleted.toString() === value
     },
     getUsers() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
       this.$store.dispatch('maintenance/getUsers').then((response) => {
         var items = response.data
         this.users = this.minotaka.makeArray(items)
-        this.loading = false
+        this.$store.dispatch('endLoading')
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
+        this.$store.dispatch('endLoading')
       })
     },
     edit(id) {
@@ -64,7 +61,7 @@ export default {
       this.$router.push({ name: 'usermakers', params: { id: id } })
     },
     useradd() {
-      this.$router.push('useradd')
+      this.$router.push({ name: 'useradd' })
     }
   },
   created() {

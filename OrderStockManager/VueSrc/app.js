@@ -1,4 +1,8 @@
 ﻿"use strict"
+// polyfills
+import 'es6-promise/auto'
+import 'url-search-params-polyfill';
+
 // Vue関連
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -27,7 +31,7 @@ Vue.use(VueLocalStorage, { namespace: 'vuejs__' })
 Vue.use(Meta)
 Vue.use(VueAxios, axios)
 Vue.use(DataTables)
-Vue.config.performance = true
+Vue.config.performance = false
 
 // moment設定
 moment.locale('ja')
@@ -84,6 +88,18 @@ Vue.filter('boolMessage', function (value, trueMessage, falseMessage) {
 const router = new VueRouter({
   scrollBehavior: (to, from, savedPosition) => ({ x: 0, y: 0 }),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!store.getters.isAuthenticated) {
+      next({ path: '/signin', query: { redirect: to.fullPath } })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 var app = new Vue({

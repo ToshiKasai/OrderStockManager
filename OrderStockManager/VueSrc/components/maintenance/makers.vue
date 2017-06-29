@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-  el-table(:data="makers" height="480" v-loading="loading" element-loading-text="Loading...")
+  el-table(:data="makers" height="480")
     el-table-column(prop="code" label="コード" sortable width="150")
     el-table-column(prop="name" label="名称")
     el-table-column(prop="enabled" label="使用許可" :filters="enabledFilters" :filter-method="filterEnabled" filter-placement="bottom-end" :filter-multiple="false" width="120")
@@ -22,7 +22,6 @@ export default {
   },
   data() {
     return {
-      loading: false,
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不許可', value: 'false' }],
       deletedFilters: [{ text: '削除済み', value: 'true' }, { text: '未削除', value: 'false' }],
       makers: []
@@ -38,25 +37,25 @@ export default {
       return row.deleted.toString() === value
     },
     changeMaker(maker) {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'メーカー情報更新中')
       maker.enabled = maker.enabled ? false : true
       this.$store.dispatch('maintenance/setMakers', maker).then((response) => {
         this.getMaker()
-        this.loading = false
+        this.$store.dispatch('endLoading')
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
+        this.$store.dispatch('endLoading')
       })
     },
     getMaker() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'メーカー情報処理中')
       this.$store.dispatch('maintenance/getMakers').then((response) => {
         var items = this.minotaka.makeArray(response.data)
         this.makers = Enumerable.from(items).orderBy(x => x.code).toArray()
-        this.loading = false
+        this.$store.dispatch('endLoading')
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
+        this.$store.dispatch('endLoading')
       })
     }
   },
