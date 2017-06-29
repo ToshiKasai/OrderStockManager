@@ -2,9 +2,9 @@
 div
   el-menu(mode="horizontal" :router="true")
     el-menu-item(:index="homePath" v-text="title")
-    el-menu-item(index="signin" v-show="!sinf") サインイン
-    el-submenu(index="acount" v-show="sinf")
-      template(slot="title") {{sinName}}
+    el-menu-item(index="signin" v-show="!isAuthenticated") サインイン
+    el-submenu(index="acount" v-show="isAuthenticated")
+      template(slot="title") {{fullName}}
       el-menu-item(index="/" @click="signout") サインアウト
   #content(v-loading="loading" element-loading-text="サインアウト中...")
     el-row(style="padding-bottom:8px;")
@@ -22,7 +22,6 @@ div
 
 <script>
 import { generateUUID } from './libraries/generateUUID'
-
 export default {
   metaInfo: {
     title: '',
@@ -35,26 +34,26 @@ export default {
     }
   },
   computed: {
-    sinf: function () {
-      return this.$store.state.nameid !== 0
+    isAuthenticated: function () {
+      return this.$store.getters.isAuthenticated
     },
-    sinName: function () {
-      return this.$store.getters['getName']
+    fullName: function () {
+      return this.$store.getters['fullName']
     },
     homePath: function () {
-      if (this.$store.state.nameid === 0) {
-        return "/"
-      } else {
+      if (this.$store.getters.isAuthenticated) {
         return "/menu"
+      } else {
+        return "/"
       }
     },
     breadlist: function () {
-      return this.$store.state.breadlist
+      return this.$store.getters.getBreadlist
     }
   },
   methods: {
     goHome() {
-      if (this.$store.state.nameid === 0) {
+      if (!this.$store.getters.isAuthenticated) {
         this.$router.push('/')
       } else {
         this.$router.push('/menu')
@@ -62,16 +61,14 @@ export default {
     },
     signout() {
       this.loading = true
-      this.$store.dispatch('postSignOut').then(() => {
-        this.$ls.set("bearer", null)
-        this.$ls.set("refresh", null)
+      this.$store.dispatch('signOut').then(() => {
         this.loading = false
         this.$router.push('/')
       })
     }
   },
   created: function () {
-    if (this.$store.state.nameid === 0) {
+    if (!this.$store.getters.isAuthenticated) {
       this.$ls.set("bearer", null)
       this.$ls.set("refresh", null)
     }

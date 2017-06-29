@@ -18,45 +18,40 @@ div
     el-col(:span="8")
       el-button(size="large" style="width:100%") アクションログ表示
   hr
-  el-table(:data="tableData" v-loading="loading" element-loading-text="Loading...")
+  el-table(:data="dashboards" v-loading="loading" element-loading-text="Loading...")
     el-table-column(prop="startDateTime" label="掲載日" width="180")
       template(scope="scope")
-        span(v-text="converetDateFormat(scope.row.startDateTime)")
+        span {{scope.row.startDateTime | converetDateFormat}}
     el-table-column(prop="message" label="メッセージ")
 </template>
 
 <script>
-import moment from 'moment'
-moment.locale('ja', {
-  weekdays: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
-  weekdaysShort: ["日", "月", "火", "水", "木", "金", "土"]
-})
-
 export default {
   metaInfo: {
     title: 'メニュー',
   },
   data: function () {
     return {
-      loading: false
+      loading: false,
+      dashboards: []
     }
   },
   computed: {
-    tableData() {
-      return this.$store.state.dashboard
-    }
   },
   methods: {
     goMainte() {
       this.$router.push('/mainte')
     },
-    converetDateFormat(date) {
-      var tmp = moment(date)
-      return tmp.format('YYYY/MM/DD(ddd)')
-    },
-    getDashboard(){
+    getDashboard() {
       this.loading = true
-      this.$store.dispatch('getDashboard').then(() => { this.loading = false })
+      this.$store.dispatch('getDashboard').then((response) => {
+        var items = response.data
+        this.dashboards = this.minotaka.makeArray(items)
+        this.loading = false
+      }).catch((error) => {
+        this.$notify({ title: 'Warning', message: error.message, type: 'warning' })
+        this.loading = false
+      })
     }
   },
   created() {
@@ -74,10 +69,6 @@ export default {
         { path: '/menu', name: 'MENU' }
       )
     })
-  },
-  beforeRouteLeave(to, from, next) {
-    this.$store.commit('setDashboard', [])
-    next()
   }
 }
 </script>

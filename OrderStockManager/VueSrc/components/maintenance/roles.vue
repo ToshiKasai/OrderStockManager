@@ -1,9 +1,9 @@
 <template lang="pug">
 div
-  el-table(:data="tableData" v-loading="loading" element-loading-text="Loading...")
+  el-table(:data="roles" v-loading="loading" element-loading-text="Loading...")
     el-table-column(prop="name" label="コード" sortable width="150")
     el-table-column(prop="displayName" label="説明")
-    el-table-column(prop="deleted" label="削除" :filters="[{ text: '削除済み', value: true }, { text: '未削除', value: false }]" :filter-method="filterTag" filter-placement="bottom-end" width="120")
+    el-table-column(prop="deleted" label="削除" :filters="disabledFilters" :filter-method="filterDisabled" filter-placement="bottom-end" :filter-multiple="false" width="120")
       template(scope="scope")
         span(v-text="scope.row.deleted?'削除済み':'－'")
 </template>
@@ -15,21 +15,27 @@ export default {
   },
   data() {
     return {
-      loading: false
+      loading: false,
+      roles: [],
+      disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
     }
   },
   computed: {
-    tableData() {
-      return this.$store.getters['maintenance/getRoleList']
-    }
   },
   methods: {
-    filterTag(value, row) {
-      return row.deleted === value
+    filterDisabled(value, row) {
+      return row.deleted.toString() === value
     },
-    getRoles(){
+    getRoles() {
       this.loading = true
-      this.$store.dispatch('maintenance/getRoles').then(() => { this.loading = false })
+      this.$store.dispatch('maintenance/getRoles').then((response) => {
+        var items = response.data
+        this.roles = this.minotaka.makeArray(items)
+        this.loading = false
+      }).catch((error) => {
+        this.$notify.error({ title: 'Error', message: error.message })
+        this.loading = false
+      })
     }
   },
   created() {
@@ -41,13 +47,9 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/roles', name: 'ロール' }
+        { path: '/mainte/roles', name: 'ロール' }
       )
     })
-  },
-  beforeRouteLeave(to, from, next) {
-    this.$store.commit('maintenance/setRoles', [])
-    next()
   }
 }
 </script>

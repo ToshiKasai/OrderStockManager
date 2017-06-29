@@ -1,12 +1,12 @@
 ﻿import replace from 'rollup-plugin-replace';
 import alias from 'rollup-plugin-alias';
 import vue from 'rollup-plugin-vue';
+import postcss from 'rollup-plugin-postcss';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import nodeGlobals from 'rollup-plugin-node-globals';
 import buble from 'rollup-plugin-buble';
 import uglify from 'rollup-plugin-uglify';
-import postcss from 'rollup-plugin-postcss';
 
 const outdir = "Scripts/";
 

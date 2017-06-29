@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net.Http.Extensions.Compression.Core.Compressors;
 using System.Net.Http.Formatting;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 [assembly: OwinStartup(typeof(OrderStockManager.Startup))]
 
@@ -37,6 +38,9 @@ namespace OrderStockManager
             ConfigureWebApi(httpConfig);
             app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
             app.UseWebApi(httpConfig);
+
+            var corsAttr = new EnableCorsAttribute("*", "*", "*");
+            httpConfig.EnableCors(corsAttr);
 
             httpConfig.MessageHandlers.Insert(0, new ServerCompressionHandler(new GZipCompressor(), new DeflateCompressor()));
             // httpConfig.MessageHandlers.Insert(0, new OwinServerCompressionHandler(new GZipCompressor(), new DeflateCompressor()));

@@ -1,83 +1,64 @@
 ﻿// Vue関連
 import Vue from 'vue'
-// ライブラリ
-import axios from 'axios'
 
 export const actions = {
   getUsers({ commit, state }) {
-    return axios.get("api/users", {
-      headers: { "Authorization": "bearer " + Vue.ls.get("bearer", "") },
+    return Vue.axios.get("api/users", {
       params: { "Deleted": true, "Enabled": false }
-    }).then((res) => {
-      commit('setUsers', res.data)
-    }).catch(function (error) {
-      commit('setUsers', [])
     })
+  },
+  getUser({ commit, state }, id) {
+    return Vue.axios.get("api/users/" + id)
+  },
+  setUser({ commit, state }, user) {
+    return Vue.axios.put("api/users/" + user.id, user)
+  },
+  addUser({ commit, state }, user) {
+    return Vue.axios.post("api/users", user)
+  },
+  getUserRoles({ commit, state }, id) {
+    return Vue.axios.get("api/users/" + id + "/roles")
+  },
+  setUserRoles({ commit, state }, params) {
+    return Vue.axios.post("api/users/" + params.id + "/roles", params.roles)
+  },
+  getUserMakers({ commit, state }, id) {
+    return Vue.axios.get("api/users/" + id + "/makers")
+  },
+  setUserMakers({ commit, state }, params) {
+    return Vue.axios.post("api/users/" + params.id + "/makers", params.makers)
   },
   getRoles({ commit, state }) {
-    return axios.get("api/roles", {
-      headers: { "Authorization": "bearer " + Vue.ls.get("bearer", "") },
+    return Vue.axios.get("api/roles", {
       params: { "Deleted": true, "Enabled": false }
-    }).then((res) => {
-      commit('setRoles', res.data)
-    }).catch(function (error) {
-      commit('setRoles', [])
     })
+  },
+  getRoleList({ commit, state }) {
+    return Vue.axios.get("api/roles")
   },
   getMakers({ commit, state }) {
-    return axios.get("api/makers", {
-      headers: { "Authorization": "bearer " + Vue.ls.get("bearer", "") },
+    return Vue.axios.get("api/makers", {
       params: { "Deleted": true, "Enabled": false }
-    }).then((res) => {
-      commit('setMakers', res.data)
-    }).catch(function (error) {
-      commit('setMakers', [])
     })
+  },
+  getMakerList(){
+    return Vue.axios.get("api/makers")
   },
   setMakers({ commit, state }, maker) {
-    return axios.put("api/makers/" + maker.id, maker, {
-      headers: { "Authorization": "bearer " + Vue.ls.get("bearer", "") }
-    }).then((res) => {
-    }).catch(function (error) {
+    return Vue.axios.put("api/makers/" + maker.id, maker)
+  },
+  getProducts({ commit, products }) {
+    return Vue.axios.get("api/products", {
+      params: { "Deleted": true, "Enabled": false }
     })
   },
-  clearMakers({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      commit('setMakers', null)
-      resolve()
-    })
-
+  getProduct({ commit, products }, id) {
+    return Vue.axios.get("api/products/" + id)
+  },
+  setProduct({ commit, state }, product) {
+    return Vue.axios.put("api/products/" + product.id, product)
   }
 }
 
 export const mutations = {
-  setUsers(state, items) {
-    if (Array.isArray(items)) {
-      state.userList = items
-    } else if (typeOf(items) === "object") {
-      state.userList = [items]
-    } else {
-      state.userList = []
-    }
-  },
-  setRoles(state, items) {
-    if (Array.isArray(items)) {
-      state.roleList = items
-    } else if (typeOf(items) === "object") {
-      state.roleList = [items]
-    } else {
-      state.roleList = []
-    }
-  },
-  setMakers(state, items) {
-    if (items === null) {
-      state.makerList.length = 0
-    } else if (Array.isArray(items)) {
-      state.makerList = items
-    } else if (typeOf(items) === "object") {
-      state.makerList = [items]
-    } else {
-      state.makerList = []
-    }
-  }
 }

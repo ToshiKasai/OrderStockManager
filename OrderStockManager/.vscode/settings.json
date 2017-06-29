@@ -1,23 +1,23 @@
 // 既定の設定とユーザー設定を上書きするには、このファイル内に設定を挿入します
 {
     "files.exclude": {
-        "**/.git": false,
-        "**/.svn": false,
-        "**/.hg": false,
-        "**/CVS": false,
-        "**/.DS_Store": false,
-        "**/node_modules": false,
-        "**/App_*": false,
-        "**/bin": false,
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true,
+        "**/App_*": true,
+        "**/bin": true,
         "**/Controllers": false,
-        "**/Filters": false,
-        "**/obj": false,
-        "**/Properties": false,
-        "**/Providers": false,
-        "**/Repositories": false,
-        "**/Services": false,
-        "**/*.asax": false,
-        "**/*.csproj*": false
+        "**/Filters": true,
+        "**/obj": true,
+        "**/Properties": true,
+        "**/Providers": true,
+        "**/Repositories": true,
+        "**/Services": true,
+        "**/*.asax": true,
+        "**/*.csproj*": true
     },
     "beautify.tabSize": 2
 }

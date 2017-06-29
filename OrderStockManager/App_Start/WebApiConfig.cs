@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace OrderStockManager
 {
@@ -31,6 +32,9 @@ namespace OrderStockManager
             container.RegisterType<ISalesViewService, SalesViewService>(new HierarchicalLifetimeManager());
 
             config.DependencyResolver = new UnityResolver(container);
+
+            // var corsAttr = new EnableCorsAttribute("*", "*", "*");
+            // config.EnableCors(corsAttr);
 
             // Web API ルート
             config.MapHttpAttributeRoutes();

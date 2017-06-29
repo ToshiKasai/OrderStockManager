@@ -8,8 +8,5 @@ export default {
   mutations: mutations,
   getters: getters,
   state: {
-    userList: [],
-    roleList: [],
-    makerList: []
   }
 }

@@ -21,19 +21,6 @@ export default {
     title: 'サインイン',
   },
   data() {
-    var validateId = (rule, value, callback) => {
-      if (!/^[a-zA-Z\d@_]{5,100}$/.test(value)) {
-        callback(new Error('不正なサインインＩＤです'))
-      }
-      callback()
-    };
-    var validaePass = (rule, value, callback) => {
-      // if (!/^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[a-zA-Z\d]{6,100}$/.test(value)) {
-      if (!/^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[[!-~]{6,100}$/.test(value)) {
-        callback(new Error('不正なパスワードです'))
-      }
-      callback()
-    };
     return {
       signinForm: {
         inputId: '',
@@ -41,18 +28,16 @@ export default {
       },
       checkRules: {
         inputId: [
-          { required: true, message: '入力は必須です', trigger: 'blur' },
-          { validator: validateId, trigger: 'blur' }
+          { type: "string", required: true, message: '入力は必須です', trigger: 'blur' }
         ],
         password: [
-          { required: true, message: 'パスワードを入力してください', trigger: 'blur' },
-          { validator: validaePass, trigger: 'blur' }
+          { type: "string", required: true, message: 'パスワードを入力してください', trigger: 'blur' }
         ]
       },
       dialogVisible: false,
       dialogMessage: "",
       loading: false
-    };
+    }
   },
   computed: {
   },
@@ -61,19 +46,19 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('postSignin', this.signinForm).then((value) => {
+          this.$store.dispatch('signin', this.signinForm).then(() => {
             this.loading = false
-            if (this.$store.state.nameid === 0) {
+            if (this.$store.getters.isAuthenticated) {
+              this.$router.push('/menu')
+            } else {
               this.dialogVisible = true
               this.dialogMessage = "入力内容を見直してください"
-            } else {
-              this.$router.push('/menu')
             }
           })
         } else {
           return false
         }
-      });
+      })
     },
     resetForm(formName) {
       this.$refs[formName].resetFields()
