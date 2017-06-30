@@ -98,6 +98,27 @@ export default {
     isAuthenticated: (state) => {
       return state.userId !== 0
     },
+    isAdminRole: (state) => {
+      return state.roles.indexOf("admin") >= 0
+    },
+    isUserRole: (state, getters) => {
+      return getters.isAdminRole || state.roles.indexOf("user") >= 0
+    },
+    isMakerRole: (state, getters) => {
+      return getters.isAdminRole || state.roles.indexOf("maker") >= 0
+    },
+    isGroupRole: (state, getters) => {
+      return getters.isAdminRole || state.roles.indexOf("group") >= 0
+    },
+    isProductRole: (state, getters) => {
+      return getters.isAdminRole || state.roles.indexOf("product") >= 0
+    },
+    isLogviewRole: (state, getters) => {
+      return getters.isAdminRole || state.roles.indexOf("logview") >= 0
+    },
+    userId: (state) => {
+      return state.userId
+    },
     siginId: (state, getters) => {
       if (!getters.isAuthenticated) {
         return null;

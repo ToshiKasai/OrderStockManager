@@ -72,6 +72,12 @@ export default {
         this.$notify.error({ title: 'Error', message: error.message })
       })
     },
+    getUserEditData(){
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
+      this.getUser().then(() => {
+        this.$store.dispatch('endLoading')
+      })
+    },
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -93,15 +99,17 @@ export default {
       this.$router.go(-1)
     }
   },
+  created() {
+    this.getUserEditData()
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
       vm.$store.commit('changeBreadcrumb',
         { path: vm.$route.path, name: vm.title }
       )
-      vm.getUser().then(() => {
-        vm.$store.dispatch('endLoading')
-      })
     })
   }
 }

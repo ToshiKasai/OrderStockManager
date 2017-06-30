@@ -47,6 +47,15 @@ export default {
         this.$notify.error({ title: 'Error', message: error.message })
       })
     },
+    getUserEditData() {
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
+      this.getUser()
+      this.getRoles().then(() => {
+        this.getUserRoles().then(() => {
+          this.$store.dispatch('endLoading')
+        })
+      })
+    },
     submitForm() {
       this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中')
       this.$store.dispatch('maintenance/setUserRoles', { id: this.id, roles: this.roles }).then((response) => {
@@ -62,15 +71,14 @@ export default {
       this.$router.go(-1)
     }
   },
+  created() {
+    this.getUserEditData()
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
-      vm.getUser()
-      vm.getRoles().then(() => {
-        vm.getUserRoles().then(() => {
-          vm.$store.dispatch('endLoading')
-        })
-      })
       vm.$store.commit('changeBreadcrumb',
         { path: vm.$route.path, name: vm.title }
       )

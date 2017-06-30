@@ -58,6 +58,9 @@ axios.interceptors.response.use((response) => {
 import minotaka from './minotakaPlugins'
 Vue.use(minotaka)
 
+// Vue.mixin({
+// })
+
 // フィルタ設定
 Vue.filter('converetDateFormat', function (value, format) {
   try {
@@ -90,21 +93,35 @@ const router = new VueRouter({
   routes
 })
 
+router.onError((error) => {
+  ElementUI.Notification.warning({ title: 'NG', message: error.message })
+})
+
 router.beforeEach((to, from, next) => {
-  console.log(from)
-  console.log(to)
-  console.log('----------')
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!store.getters.isAuthenticated) {
+  let result = true
+  let auth = store.getters.isAuthenticated
+  let notify = { title: '', message: '' }
+  if (to.matched.some(record => record.meta.requiresAuth) && store.getters.isAuthenticated === false) {
+    result = false
+    notify = { title: 'ログインが確認できません', message: 'ログインを行ってください' }
+  }
+  if ((to.matched.some(record => record.meta.requiresAdmin) && store.getters.isAdminRole === false)
+    || (to.matched.some(record => record.meta.requiresUser) && store.getters.isUserRole === false)
+    || (to.matched.some(record => record.meta.requiresMaker) && store.getters.isMakerRole === false)
+    || (to.matched.some(record => record.meta.requiresGroup) && store.getters.isGroupRole === false)
+    || (to.matched.some(record => record.meta.requiresProduct) && store.getters.isProductRole === false)
+    || (to.matched.some(record => record.meta.requiresLogview) && store.getters.isLogviewRole === false)) {
+    result = false
+    notify = { title: '機能が利用できません', message: '権限が不足しているために機能を利用することが出来ません' }
+  }
+
+  if (result === false) {
+    // next(new Error("遷移できんぞ"))
+    ElementUI.Notification.error(notify)
+    if (auth === false) {
       next({ path: '/signin', query: { redirect: to.fullPath } })
-      // Vue.notify({ title: 'NG', message: 'ここに遷移は出来ません', type: 'warning' });
-      /*if (from.name === null) {
-        next({ path: '/' })
-      } else {
-        next(false)
-      }*/
     } else {
-      next()
+      next(false)
     }
   } else {
     next()

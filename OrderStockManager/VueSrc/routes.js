@@ -3,6 +3,7 @@ import Wellcome from './wellcome.vue'
 import SignIn from './components/signin.vue'
 import Menu from './components/mainmenu.vue'
 // ApplicationComponents
+import MakerSelect from './components/application/makerSelect.vue'
 // MaintenanceComponents
 import Maintenance from './components/maintenance.vue'
 import MainteMenu from './components/maintenance/maintemenu.vue'
@@ -24,16 +25,17 @@ export default [
     children: [
       { path: '', redirect: 'maintemenu' },
       { path: 'maintemenu', component: MainteMenu },
-      { path: 'users', component: Users },
-      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true },
-      { path: 'users/add', component: UserAdd, name: 'useradd' },
-      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true },
-      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true },
-      { path: 'roles', component: Roles },
-      { path: 'makers', component: Makers },
-      { path: 'products', component: Products }
+      { path: 'users', component: Users, meta: { requiresUser: true } },
+      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true, meta: { requiresUser: true } },
+      { path: 'users/add', component: UserAdd, name: 'useradd', meta: { requiresUser: true } },
+      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true, meta: { requiresUser: true } },
+      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true, meta: { requiresUser: true } },
+      { path: 'roles', component: Roles, meta: { requiresAdmin: true } },
+      { path: 'makers', component: Makers, meta: { requiresMaker: true } },
+      { path: 'products', component: Products, meta: { requiresProduct: true } }
     ],
     meta: { requiresAuth: true }
   },
+  { path: '/makerselect', component: MakerSelect, meta: { requiresAuth: true } },
   { path: '*', redirect: '/' }
 ]

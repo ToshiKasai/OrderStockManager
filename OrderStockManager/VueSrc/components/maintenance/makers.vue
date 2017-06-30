@@ -30,8 +30,6 @@ export default {
       makers: []
     }
   },
-  computed: {
-  },
   methods: {
     filterEnabled(value, row) {
       return row.enabled.toString() === value

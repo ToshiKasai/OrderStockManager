@@ -9,6 +9,7 @@ import { actions, mutations } from './mutations'
 import { getters } from './getters'
 import maintenance from './maintenance'
 import auth from './auth'
+import app from './application'
 
 // 設定
 Vue.use(Vuex)
@@ -16,7 +17,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   modules: {
     maintenance: maintenance,
-    authentication: auth
+    authentication: auth,
+    application: app
   },
   actions: actions,
   mutations,

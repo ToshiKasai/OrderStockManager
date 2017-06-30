@@ -68,6 +68,15 @@ export default {
         this.$notify.error({ title: 'Error', message: error.message })
       })
     },
+    getUserEditData() {
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
+      this.getUser()
+      this.getMakers().then(() => {
+        this.getUserMakers().then(() => {
+          this.$store.dispatch('endLoading')
+        })
+      })
+    },
     submitForm() {
       this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中')
       this.$store.dispatch('maintenance/setUserMakers', { id: this.id, makers: this.makers }).then((response) => {
@@ -86,16 +95,14 @@ export default {
       this.makers = sels;
     }
   },
+  created() {
+    this.getUserEditData()
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
-      vm.getUser()
-      vm.getMakers().then(() => {
-        vm.getUserMakers().then(() => {
-          vm.$store.dispatch('endLoading')
-
-        })
-      })
       vm.$store.commit('changeBreadcrumb',
         { path: vm.$route.path, name: vm.title }
       )

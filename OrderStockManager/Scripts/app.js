@@ -57726,15 +57726,1244 @@ var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm.
   }
 };
 
-var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")]),_c('hr'),_c('div',[_vm._v("開発環境はGoogle Chromeが中心となります。")]),_c('div',[_vm._v("IE11は対応は考慮しておりますが、全機能の動作は確認しておりません。")])])}],_scopeId: 'data-v-c8f7c99c',
+var platform$1 = createCommonjsModule(function (module, exports) {
+/*!
+ * Platform.js <https://mths.be/platform>
+ * Copyright 2014-2016 Benjamin Tan <https://demoneaux.github.io/>
+ * Copyright 2011-2013 John-David Dalton <http://allyoucanleet.com/>
+ * Available under MIT license <https://mths.be/mit>
+ */
+(function() {
+  'use strict';
+
+  /** Used to determine if values are of the language type `Object`. */
+  var objectTypes = {
+    'function': true,
+    'object': true
+  };
+
+  /** Used as a reference to the global object. */
+  var root = (objectTypes[typeof window] && window) || this;
+
+  /** Backup possible global object. */
+  var oldRoot = root;
+
+  /** Detect free variable `exports`. */
+  var freeExports = objectTypes['object'] && exports;
+
+  /** Detect free variable `module`. */
+  var freeModule = objectTypes['object'] && module && !module.nodeType && module;
+
+  /** Detect free variable `global` from Node.js or Browserified code and use it as `root`. */
+  var freeGlobal = freeExports && freeModule && typeof commonjsGlobal == 'object' && commonjsGlobal;
+  if (freeGlobal && (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal || freeGlobal.self === freeGlobal)) {
+    root = freeGlobal;
+  }
+
+  /**
+   * Used as the maximum length of an array-like object.
+   * See the [ES6 spec](http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength)
+   * for more details.
+   */
+  var maxSafeInteger = Math.pow(2, 53) - 1;
+
+  /** Regular expression to detect Opera. */
+  var reOpera = /\bOpera/;
+
+  /** Possible global object. */
+  var thisBinding = this;
+
+  /** Used for native method references. */
+  var objectProto = Object.prototype;
+
+  /** Used to check for own properties of an object. */
+  var hasOwnProperty = objectProto.hasOwnProperty;
+
+  /** Used to resolve the internal `[[Class]]` of values. */
+  var toString = objectProto.toString;
+
+  /*--------------------------------------------------------------------------*/
+
+  /**
+   * Capitalizes a string value.
+   *
+   * @private
+   * @param {string} string The string to capitalize.
+   * @returns {string} The capitalized string.
+   */
+  function capitalize(string) {
+    string = String(string);
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  /**
+   * A utility function to clean up the OS name.
+   *
+   * @private
+   * @param {string} os The OS name to clean up.
+   * @param {string} [pattern] A `RegExp` pattern matching the OS name.
+   * @param {string} [label] A label for the OS.
+   */
+  function cleanupOS(os, pattern, label) {
+    // Platform tokens are defined at:
+    // http://msdn.microsoft.com/en-us/library/ms537503(VS.85).aspx
+    // http://web.archive.org/web/20081122053950/http://msdn.microsoft.com/en-us/library/ms537503(VS.85).aspx
+    var data = {
+      '10.0': '10',
+      '6.4':  '10 Technical Preview',
+      '6.3':  '8.1',
+      '6.2':  '8',
+      '6.1':  'Server 2008 R2 / 7',
+      '6.0':  'Server 2008 / Vista',
+      '5.2':  'Server 2003 / XP 64-bit',
+      '5.1':  'XP',
+      '5.01': '2000 SP1',
+      '5.0':  '2000',
+      '4.0':  'NT',
+      '4.90': 'ME'
+    };
+    // Detect Windows version from platform tokens.
+    if (pattern && label && /^Win/i.test(os) && !/^Windows Phone /i.test(os) &&
+        (data = data[/[\d.]+$/.exec(os)])) {
+      os = 'Windows ' + data;
+    }
+    // Correct character case and cleanup string.
+    os = String(os);
+
+    if (pattern && label) {
+      os = os.replace(RegExp(pattern, 'i'), label);
+    }
+
+    os = format(
+      os.replace(/ ce$/i, ' CE')
+        .replace(/\bhpw/i, 'web')
+        .replace(/\bMacintosh\b/, 'Mac OS')
+        .replace(/_PowerPC\b/i, ' OS')
+        .replace(/\b(OS X) [^ \d]+/i, '$1')
+        .replace(/\bMac (OS X)\b/, '$1')
+        .replace(/\/(\d)/, ' $1')
+        .replace(/_/g, '.')
+        .replace(/(?: BePC|[ .]*fc[ \d.]+)$/i, '')
+        .replace(/\bx86\.64\b/gi, 'x86_64')
+        .replace(/\b(Windows Phone) OS\b/, '$1')
+        .replace(/\b(Chrome OS \w+) [\d.]+\b/, '$1')
+        .split(' on ')[0]
+    );
+
+    return os;
+  }
+
+  /**
+   * An iteration utility for arrays and objects.
+   *
+   * @private
+   * @param {Array|Object} object The object to iterate over.
+   * @param {Function} callback The function called per iteration.
+   */
+  function each(object, callback) {
+    var index = -1,
+        length = object ? object.length : 0;
+
+    if (typeof length == 'number' && length > -1 && length <= maxSafeInteger) {
+      while (++index < length) {
+        callback(object[index], index, object);
+      }
+    } else {
+      forOwn(object, callback);
+    }
+  }
+
+  /**
+   * Trim and conditionally capitalize string values.
+   *
+   * @private
+   * @param {string} string The string to format.
+   * @returns {string} The formatted string.
+   */
+  function format(string) {
+    string = trim(string);
+    return /^(?:webOS|i(?:OS|P))/.test(string)
+      ? string
+      : capitalize(string);
+  }
+
+  /**
+   * Iterates over an object's own properties, executing the `callback` for each.
+   *
+   * @private
+   * @param {Object} object The object to iterate over.
+   * @param {Function} callback The function executed per own property.
+   */
+  function forOwn(object, callback) {
+    for (var key in object) {
+      if (hasOwnProperty.call(object, key)) {
+        callback(object[key], key, object);
+      }
+    }
+  }
+
+  /**
+   * Gets the internal `[[Class]]` of a value.
+   *
+   * @private
+   * @param {*} value The value.
+   * @returns {string} The `[[Class]]`.
+   */
+  function getClassOf(value) {
+    return value == null
+      ? capitalize(value)
+      : toString.call(value).slice(8, -1);
+  }
+
+  /**
+   * Host objects can return type values that are different from their actual
+   * data type. The objects we are concerned with usually return non-primitive
+   * types of "object", "function", or "unknown".
+   *
+   * @private
+   * @param {*} object The owner of the property.
+   * @param {string} property The property to check.
+   * @returns {boolean} Returns `true` if the property value is a non-primitive, else `false`.
+   */
+  function isHostType(object, property) {
+    var type = object != null ? typeof object[property] : 'number';
+    return !/^(?:boolean|number|string|undefined)$/.test(type) &&
+      (type == 'object' ? !!object[property] : true);
+  }
+
+  /**
+   * Prepares a string for use in a `RegExp` by making hyphens and spaces optional.
+   *
+   * @private
+   * @param {string} string The string to qualify.
+   * @returns {string} The qualified string.
+   */
+  function qualify(string) {
+    return String(string).replace(/([ -])(?!$)/g, '$1?');
+  }
+
+  /**
+   * A bare-bones `Array#reduce` like utility function.
+   *
+   * @private
+   * @param {Array} array The array to iterate over.
+   * @param {Function} callback The function called per iteration.
+   * @returns {*} The accumulated result.
+   */
+  function reduce(array, callback) {
+    var accumulator = null;
+    each(array, function(value, index) {
+      accumulator = callback(accumulator, value, index, array);
+    });
+    return accumulator;
+  }
+
+  /**
+   * Removes leading and trailing whitespace from a string.
+   *
+   * @private
+   * @param {string} string The string to trim.
+   * @returns {string} The trimmed string.
+   */
+  function trim(string) {
+    return String(string).replace(/^ +| +$/g, '');
+  }
+
+  /*--------------------------------------------------------------------------*/
+
+  /**
+   * Creates a new platform object.
+   *
+   * @memberOf platform
+   * @param {Object|string} [ua=navigator.userAgent] The user agent string or
+   *  context object.
+   * @returns {Object} A platform object.
+   */
+  function parse(ua) {
+
+    /** The environment context object. */
+    var context = root;
+
+    /** Used to flag when a custom context is provided. */
+    var isCustomContext = ua && typeof ua == 'object' && getClassOf(ua) != 'String';
+
+    // Juggle arguments.
+    if (isCustomContext) {
+      context = ua;
+      ua = null;
+    }
+
+    /** Browser navigator object. */
+    var nav = context.navigator || {};
+
+    /** Browser user agent string. */
+    var userAgent = nav.userAgent || '';
+
+    ua || (ua = userAgent);
+
+    /** Used to flag when `thisBinding` is the [ModuleScope]. */
+    var isModuleScope = isCustomContext || thisBinding == oldRoot;
+
+    /** Used to detect if browser is like Chrome. */
+    var likeChrome = isCustomContext
+      ? !!nav.likeChrome
+      : /\bChrome\b/.test(ua) && !/internal|\n/i.test(toString.toString());
+
+    /** Internal `[[Class]]` value shortcuts. */
+    var objectClass = 'Object',
+        airRuntimeClass = isCustomContext ? objectClass : 'ScriptBridgingProxyObject',
+        enviroClass = isCustomContext ? objectClass : 'Environment',
+        javaClass = (isCustomContext && context.java) ? 'JavaPackage' : getClassOf(context.java),
+        phantomClass = isCustomContext ? objectClass : 'RuntimeObject';
+
+    /** Detect Java environments. */
+    var java = /\bJava/.test(javaClass) && context.java;
+
+    /** Detect Rhino. */
+    var rhino = java && getClassOf(context.environment) == enviroClass;
+
+    /** A character to represent alpha. */
+    var alpha = java ? 'a' : '\u03b1';
+
+    /** A character to represent beta. */
+    var beta = java ? 'b' : '\u03b2';
+
+    /** Browser document object. */
+    var doc = context.document || {};
+
+    /**
+     * Detect Opera browser (Presto-based).
+     * http://www.howtocreate.co.uk/operaStuff/operaObject.html
+     * http://dev.opera.com/articles/view/opera-mini-web-content-authoring-guidelines/#operamini
+     */
+    var opera = context.operamini || context.opera;
+
+    /** Opera `[[Class]]`. */
+    var operaClass = reOpera.test(operaClass = (isCustomContext && opera) ? opera['[[Class]]'] : getClassOf(opera))
+      ? operaClass
+      : (opera = null);
+
+    /*------------------------------------------------------------------------*/
+
+    /** Temporary variable used over the script's lifetime. */
+    var data;
+
+    /** The CPU architecture. */
+    var arch = ua;
+
+    /** Platform description array. */
+    var description = [];
+
+    /** Platform alpha/beta indicator. */
+    var prerelease = null;
+
+    /** A flag to indicate that environment features should be used to resolve the platform. */
+    var useFeatures = ua == userAgent;
+
+    /** The browser/environment version. */
+    var version = useFeatures && opera && typeof opera.version == 'function' && opera.version();
+
+    /** A flag to indicate if the OS ends with "/ Version" */
+    var isSpecialCasedOS;
+
+    /* Detectable layout engines (order is important). */
+    var layout = getLayout([
+      { 'label': 'EdgeHTML', 'pattern': 'Edge' },
+      'Trident',
+      { 'label': 'WebKit', 'pattern': 'AppleWebKit' },
+      'iCab',
+      'Presto',
+      'NetFront',
+      'Tasman',
+      'KHTML',
+      'Gecko'
+    ]);
+
+    /* Detectable browser names (order is important). */
+    var name = getName([
+      'Adobe AIR',
+      'Arora',
+      'Avant Browser',
+      'Breach',
+      'Camino',
+      'Electron',
+      'Epiphany',
+      'Fennec',
+      'Flock',
+      'Galeon',
+      'GreenBrowser',
+      'iCab',
+      'Iceweasel',
+      'K-Meleon',
+      'Konqueror',
+      'Lunascape',
+      'Maxthon',
+      { 'label': 'Microsoft Edge', 'pattern': 'Edge' },
+      'Midori',
+      'Nook Browser',
+      'PaleMoon',
+      'PhantomJS',
+      'Raven',
+      'Rekonq',
+      'RockMelt',
+      { 'label': 'Samsung Internet', 'pattern': 'SamsungBrowser' },
+      'SeaMonkey',
+      { 'label': 'Silk', 'pattern': '(?:Cloud9|Silk-Accelerated)' },
+      'Sleipnir',
+      'SlimBrowser',
+      { 'label': 'SRWare Iron', 'pattern': 'Iron' },
+      'Sunrise',
+      'Swiftfox',
+      'Waterfox',
+      'WebPositive',
+      'Opera Mini',
+      { 'label': 'Opera Mini', 'pattern': 'OPiOS' },
+      'Opera',
+      { 'label': 'Opera', 'pattern': 'OPR' },
+      'Chrome',
+      { 'label': 'Chrome Mobile', 'pattern': '(?:CriOS|CrMo)' },
+      { 'label': 'Firefox', 'pattern': '(?:Firefox|Minefield)' },
+      { 'label': 'Firefox for iOS', 'pattern': 'FxiOS' },
+      { 'label': 'IE', 'pattern': 'IEMobile' },
+      { 'label': 'IE', 'pattern': 'MSIE' },
+      'Safari'
+    ]);
+
+    /* Detectable products (order is important). */
+    var product = getProduct([
+      { 'label': 'BlackBerry', 'pattern': 'BB10' },
+      'BlackBerry',
+      { 'label': 'Galaxy S', 'pattern': 'GT-I9000' },
+      { 'label': 'Galaxy S2', 'pattern': 'GT-I9100' },
+      { 'label': 'Galaxy S3', 'pattern': 'GT-I9300' },
+      { 'label': 'Galaxy S4', 'pattern': 'GT-I9500' },
+      { 'label': 'Galaxy S5', 'pattern': 'SM-G900' },
+      { 'label': 'Galaxy S6', 'pattern': 'SM-G920' },
+      { 'label': 'Galaxy S6 Edge', 'pattern': 'SM-G925' },
+      { 'label': 'Galaxy S7', 'pattern': 'SM-G930' },
+      { 'label': 'Galaxy S7 Edge', 'pattern': 'SM-G935' },
+      'Google TV',
+      'Lumia',
+      'iPad',
+      'iPod',
+      'iPhone',
+      'Kindle',
+      { 'label': 'Kindle Fire', 'pattern': '(?:Cloud9|Silk-Accelerated)' },
+      'Nexus',
+      'Nook',
+      'PlayBook',
+      'PlayStation Vita',
+      'PlayStation',
+      'TouchPad',
+      'Transformer',
+      { 'label': 'Wii U', 'pattern': 'WiiU' },
+      'Wii',
+      'Xbox One',
+      { 'label': 'Xbox 360', 'pattern': 'Xbox' },
+      'Xoom'
+    ]);
+
+    /* Detectable manufacturers. */
+    var manufacturer = getManufacturer({
+      'Apple': { 'iPad': 1, 'iPhone': 1, 'iPod': 1 },
+      'Archos': {},
+      'Amazon': { 'Kindle': 1, 'Kindle Fire': 1 },
+      'Asus': { 'Transformer': 1 },
+      'Barnes & Noble': { 'Nook': 1 },
+      'BlackBerry': { 'PlayBook': 1 },
+      'Google': { 'Google TV': 1, 'Nexus': 1 },
+      'HP': { 'TouchPad': 1 },
+      'HTC': {},
+      'LG': {},
+      'Microsoft': { 'Xbox': 1, 'Xbox One': 1 },
+      'Motorola': { 'Xoom': 1 },
+      'Nintendo': { 'Wii U': 1,  'Wii': 1 },
+      'Nokia': { 'Lumia': 1 },
+      'Samsung': { 'Galaxy S': 1, 'Galaxy S2': 1, 'Galaxy S3': 1, 'Galaxy S4': 1 },
+      'Sony': { 'PlayStation': 1, 'PlayStation Vita': 1 }
+    });
+
+    /* Detectable operating systems (order is important). */
+    var os = getOS([
+      'Windows Phone',
+      'Android',
+      'CentOS',
+      { 'label': 'Chrome OS', 'pattern': 'CrOS' },
+      'Debian',
+      'Fedora',
+      'FreeBSD',
+      'Gentoo',
+      'Haiku',
+      'Kubuntu',
+      'Linux Mint',
+      'OpenBSD',
+      'Red Hat',
+      'SuSE',
+      'Ubuntu',
+      'Xubuntu',
+      'Cygwin',
+      'Symbian OS',
+      'hpwOS',
+      'webOS ',
+      'webOS',
+      'Tablet OS',
+      'Tizen',
+      'Linux',
+      'Mac OS X',
+      'Macintosh',
+      'Mac',
+      'Windows 98;',
+      'Windows '
+    ]);
+
+    /*------------------------------------------------------------------------*/
+
+    /**
+     * Picks the layout engine from an array of guesses.
+     *
+     * @private
+     * @param {Array} guesses An array of guesses.
+     * @returns {null|string} The detected layout engine.
+     */
+    function getLayout(guesses) {
+      return reduce(guesses, function(result, guess) {
+        return result || RegExp('\\b' + (
+          guess.pattern || qualify(guess)
+        ) + '\\b', 'i').exec(ua) && (guess.label || guess);
+      });
+    }
+
+    /**
+     * Picks the manufacturer from an array of guesses.
+     *
+     * @private
+     * @param {Array} guesses An object of guesses.
+     * @returns {null|string} The detected manufacturer.
+     */
+    function getManufacturer(guesses) {
+      return reduce(guesses, function(result, value, key) {
+        // Lookup the manufacturer by product or scan the UA for the manufacturer.
+        return result || (
+          value[product] ||
+          value[/^[a-z]+(?: +[a-z]+\b)*/i.exec(product)] ||
+          RegExp('\\b' + qualify(key) + '(?:\\b|\\w*\\d)', 'i').exec(ua)
+        ) && key;
+      });
+    }
+
+    /**
+     * Picks the browser name from an array of guesses.
+     *
+     * @private
+     * @param {Array} guesses An array of guesses.
+     * @returns {null|string} The detected browser name.
+     */
+    function getName(guesses) {
+      return reduce(guesses, function(result, guess) {
+        return result || RegExp('\\b' + (
+          guess.pattern || qualify(guess)
+        ) + '\\b', 'i').exec(ua) && (guess.label || guess);
+      });
+    }
+
+    /**
+     * Picks the OS name from an array of guesses.
+     *
+     * @private
+     * @param {Array} guesses An array of guesses.
+     * @returns {null|string} The detected OS name.
+     */
+    function getOS(guesses) {
+      return reduce(guesses, function(result, guess) {
+        var pattern = guess.pattern || qualify(guess);
+        if (!result && (result =
+              RegExp('\\b' + pattern + '(?:/[\\d.]+|[ \\w.]*)', 'i').exec(ua)
+            )) {
+          result = cleanupOS(result, pattern, guess.label || guess);
+        }
+        return result;
+      });
+    }
+
+    /**
+     * Picks the product name from an array of guesses.
+     *
+     * @private
+     * @param {Array} guesses An array of guesses.
+     * @returns {null|string} The detected product name.
+     */
+    function getProduct(guesses) {
+      return reduce(guesses, function(result, guess) {
+        var pattern = guess.pattern || qualify(guess);
+        if (!result && (result =
+              RegExp('\\b' + pattern + ' *\\d+[.\\w_]*', 'i').exec(ua) ||
+              RegExp('\\b' + pattern + ' *\\w+-[\\w]*', 'i').exec(ua) ||
+              RegExp('\\b' + pattern + '(?:; *(?:[a-z]+[_-])?[a-z]+\\d+|[^ ();-]*)', 'i').exec(ua)
+            )) {
+          // Split by forward slash and append product version if needed.
+          if ((result = String((guess.label && !RegExp(pattern, 'i').test(guess.label)) ? guess.label : result).split('/'))[1] && !/[\d.]+/.test(result[0])) {
+            result[0] += ' ' + result[1];
+          }
+          // Correct character case and cleanup string.
+          guess = guess.label || guess;
+          result = format(result[0]
+            .replace(RegExp(pattern, 'i'), guess)
+            .replace(RegExp('; *(?:' + guess + '[_-])?', 'i'), ' ')
+            .replace(RegExp('(' + guess + ')[-_.]?(\\w)', 'i'), '$1 $2'));
+        }
+        return result;
+      });
+    }
+
+    /**
+     * Resolves the version using an array of UA patterns.
+     *
+     * @private
+     * @param {Array} patterns An array of UA patterns.
+     * @returns {null|string} The detected version.
+     */
+    function getVersion(patterns) {
+      return reduce(patterns, function(result, pattern) {
+        return result || (RegExp(pattern +
+          '(?:-[\\d.]+/|(?: for [\\w-]+)?[ /-])([\\d.]+[^ ();/_-]*)', 'i').exec(ua) || 0)[1] || null;
+      });
+    }
+
+    /**
+     * Returns `platform.description` when the platform object is coerced to a string.
+     *
+     * @name toString
+     * @memberOf platform
+     * @returns {string} Returns `platform.description` if available, else an empty string.
+     */
+    function toStringPlatform() {
+      return this.description || '';
+    }
+
+    /*------------------------------------------------------------------------*/
+
+    // Convert layout to an array so we can add extra details.
+    layout && (layout = [layout]);
+
+    // Detect product names that contain their manufacturer's name.
+    if (manufacturer && !product) {
+      product = getProduct([manufacturer]);
+    }
+    // Clean up Google TV.
+    if ((data = /\bGoogle TV\b/.exec(product))) {
+      product = data[0];
+    }
+    // Detect simulators.
+    if (/\bSimulator\b/i.test(ua)) {
+      product = (product ? product + ' ' : '') + 'Simulator';
+    }
+    // Detect Opera Mini 8+ running in Turbo/Uncompressed mode on iOS.
+    if (name == 'Opera Mini' && /\bOPiOS\b/.test(ua)) {
+      description.push('running in Turbo/Uncompressed mode');
+    }
+    // Detect IE Mobile 11.
+    if (name == 'IE' && /\blike iPhone OS\b/.test(ua)) {
+      data = parse(ua.replace(/like iPhone OS/, ''));
+      manufacturer = data.manufacturer;
+      product = data.product;
+    }
+    // Detect iOS.
+    else if (/^iP/.test(product)) {
+      name || (name = 'Safari');
+      os = 'iOS' + ((data = / OS ([\d_]+)/i.exec(ua))
+        ? ' ' + data[1].replace(/_/g, '.')
+        : '');
+    }
+    // Detect Kubuntu.
+    else if (name == 'Konqueror' && !/buntu/i.test(os)) {
+      os = 'Kubuntu';
+    }
+    // Detect Android browsers.
+    else if ((manufacturer && manufacturer != 'Google' &&
+        ((/Chrome/.test(name) && !/\bMobile Safari\b/i.test(ua)) || /\bVita\b/.test(product))) ||
+        (/\bAndroid\b/.test(os) && /^Chrome/.test(name) && /\bVersion\//i.test(ua))) {
+      name = 'Android Browser';
+      os = /\bAndroid\b/.test(os) ? os : 'Android';
+    }
+    // Detect Silk desktop/accelerated modes.
+    else if (name == 'Silk') {
+      if (!/\bMobi/i.test(ua)) {
+        os = 'Android';
+        description.unshift('desktop mode');
+      }
+      if (/Accelerated *= *true/i.test(ua)) {
+        description.unshift('accelerated');
+      }
+    }
+    // Detect PaleMoon identifying as Firefox.
+    else if (name == 'PaleMoon' && (data = /\bFirefox\/([\d.]+)\b/.exec(ua))) {
+      description.push('identifying as Firefox ' + data[1]);
+    }
+    // Detect Firefox OS and products running Firefox.
+    else if (name == 'Firefox' && (data = /\b(Mobile|Tablet|TV)\b/i.exec(ua))) {
+      os || (os = 'Firefox OS');
+      product || (product = data[1]);
+    }
+    // Detect false positives for Firefox/Safari.
+    else if (!name || (data = !/\bMinefield\b/i.test(ua) && /\b(?:Firefox|Safari)\b/.exec(name))) {
+      // Escape the `/` for Firefox 1.
+      if (name && !product && /[\/,]|^[^(]+?\)/.test(ua.slice(ua.indexOf(data + '/') + 8))) {
+        // Clear name of false positives.
+        name = null;
+      }
+      // Reassign a generic name.
+      if ((data = product || manufacturer || os) &&
+          (product || manufacturer || /\b(?:Android|Symbian OS|Tablet OS|webOS)\b/.test(os))) {
+        name = /[a-z]+(?: Hat)?/i.exec(/\bAndroid\b/.test(os) ? os : data) + ' Browser';
+      }
+    }
+    // Add Chrome version to description for Electron.
+    else if (name == 'Electron' && (data = (/\bChrome\/([\d.]+)\b/.exec(ua) || 0)[1])) {
+      description.push('Chromium ' + data);
+    }
+    // Detect non-Opera (Presto-based) versions (order is important).
+    if (!version) {
+      version = getVersion([
+        '(?:Cloud9|CriOS|CrMo|Edge|FxiOS|IEMobile|Iron|Opera ?Mini|OPiOS|OPR|Raven|SamsungBrowser|Silk(?!/[\\d.]+$))',
+        'Version',
+        qualify(name),
+        '(?:Firefox|Minefield|NetFront)'
+      ]);
+    }
+    // Detect stubborn layout engines.
+    if ((data =
+          layout == 'iCab' && parseFloat(version) > 3 && 'WebKit' ||
+          /\bOpera\b/.test(name) && (/\bOPR\b/.test(ua) ? 'Blink' : 'Presto') ||
+          /\b(?:Midori|Nook|Safari)\b/i.test(ua) && !/^(?:Trident|EdgeHTML)$/.test(layout) && 'WebKit' ||
+          !layout && /\bMSIE\b/i.test(ua) && (os == 'Mac OS' ? 'Tasman' : 'Trident') ||
+          layout == 'WebKit' && /\bPlayStation\b(?! Vita\b)/i.test(name) && 'NetFront'
+        )) {
+      layout = [data];
+    }
+    // Detect Windows Phone 7 desktop mode.
+    if (name == 'IE' && (data = (/; *(?:XBLWP|ZuneWP)(\d+)/i.exec(ua) || 0)[1])) {
+      name += ' Mobile';
+      os = 'Windows Phone ' + (/\+$/.test(data) ? data : data + '.x');
+      description.unshift('desktop mode');
+    }
+    // Detect Windows Phone 8.x desktop mode.
+    else if (/\bWPDesktop\b/i.test(ua)) {
+      name = 'IE Mobile';
+      os = 'Windows Phone 8.x';
+      description.unshift('desktop mode');
+      version || (version = (/\brv:([\d.]+)/.exec(ua) || 0)[1]);
+    }
+    // Detect IE 11 identifying as other browsers.
+    else if (name != 'IE' && layout == 'Trident' && (data = /\brv:([\d.]+)/.exec(ua))) {
+      if (name) {
+        description.push('identifying as ' + name + (version ? ' ' + version : ''));
+      }
+      name = 'IE';
+      version = data[1];
+    }
+    // Leverage environment features.
+    if (useFeatures) {
+      // Detect server-side environments.
+      // Rhino has a global function while others have a global object.
+      if (isHostType(context, 'global')) {
+        if (java) {
+          data = java.lang.System;
+          arch = data.getProperty('os.arch');
+          os = os || data.getProperty('os.name') + ' ' + data.getProperty('os.version');
+        }
+        if (isModuleScope && isHostType(context, 'system') && (data = [context.system])[0]) {
+          os || (os = data[0].os || null);
+          try {
+            data[1] = context.require('ringo/engine').version;
+            version = data[1].join('.');
+            name = 'RingoJS';
+          } catch(e) {
+            if (data[0].global.system == context.system) {
+              name = 'Narwhal';
+            }
+          }
+        }
+        else if (
+          typeof context.process == 'object' && !context.process.browser &&
+          (data = context.process)
+        ) {
+          if (typeof data.versions == 'object') {
+            if (typeof data.versions.electron == 'string') {
+              description.push('Node ' + data.versions.node);
+              name = 'Electron';
+              version = data.versions.electron;
+            } else if (typeof data.versions.nw == 'string') {
+              description.push('Chromium ' + version, 'Node ' + data.versions.node);
+              name = 'NW.js';
+              version = data.versions.nw;
+            }
+          } else {
+            name = 'Node.js';
+            arch = data.arch;
+            os = data.platform;
+            version = /[\d.]+/.exec(data.version);
+            version = version ? version[0] : 'unknown';
+          }
+        }
+        else if (rhino) {
+          name = 'Rhino';
+        }
+      }
+      // Detect Adobe AIR.
+      else if (getClassOf((data = context.runtime)) == airRuntimeClass) {
+        name = 'Adobe AIR';
+        os = data.flash.system.Capabilities.os;
+      }
+      // Detect PhantomJS.
+      else if (getClassOf((data = context.phantom)) == phantomClass) {
+        name = 'PhantomJS';
+        version = (data = data.version || null) && (data.major + '.' + data.minor + '.' + data.patch);
+      }
+      // Detect IE compatibility modes.
+      else if (typeof doc.documentMode == 'number' && (data = /\bTrident\/(\d+)/i.exec(ua))) {
+        // We're in compatibility mode when the Trident version + 4 doesn't
+        // equal the document mode.
+        version = [version, doc.documentMode];
+        if ((data = +data[1] + 4) != version[1]) {
+          description.push('IE ' + version[1] + ' mode');
+          layout && (layout[1] = '');
+          version[1] = data;
+        }
+        version = name == 'IE' ? String(version[1].toFixed(1)) : version[0];
+      }
+      // Detect IE 11 masking as other browsers.
+      else if (typeof doc.documentMode == 'number' && /^(?:Chrome|Firefox)\b/.test(name)) {
+        description.push('masking as ' + name + ' ' + version);
+        name = 'IE';
+        version = '11.0';
+        layout = ['Trident'];
+        os = 'Windows';
+      }
+      os = os && format(os);
+    }
+    // Detect prerelease phases.
+    if (version && (data =
+          /(?:[ab]|dp|pre|[ab]\d+pre)(?:\d+\+?)?$/i.exec(version) ||
+          /(?:alpha|beta)(?: ?\d)?/i.exec(ua + ';' + (useFeatures && nav.appMinorVersion)) ||
+          /\bMinefield\b/i.test(ua) && 'a'
+        )) {
+      prerelease = /b/i.test(data) ? 'beta' : 'alpha';
+      version = version.replace(RegExp(data + '\\+?$'), '') +
+        (prerelease == 'beta' ? beta : alpha) + (/\d+\+?/.exec(data) || '');
+    }
+    // Detect Firefox Mobile.
+    if (name == 'Fennec' || name == 'Firefox' && /\b(?:Android|Firefox OS)\b/.test(os)) {
+      name = 'Firefox Mobile';
+    }
+    // Obscure Maxthon's unreliable version.
+    else if (name == 'Maxthon' && version) {
+      version = version.replace(/\.[\d.]+/, '.x');
+    }
+    // Detect Xbox 360 and Xbox One.
+    else if (/\bXbox\b/i.test(product)) {
+      if (product == 'Xbox 360') {
+        os = null;
+      }
+      if (product == 'Xbox 360' && /\bIEMobile\b/.test(ua)) {
+        description.unshift('mobile mode');
+      }
+    }
+    // Add mobile postfix.
+    else if ((/^(?:Chrome|IE|Opera)$/.test(name) || name && !product && !/Browser|Mobi/.test(name)) &&
+        (os == 'Windows CE' || /Mobi/i.test(ua))) {
+      name += ' Mobile';
+    }
+    // Detect IE platform preview.
+    else if (name == 'IE' && useFeatures) {
+      try {
+        if (context.external === null) {
+          description.unshift('platform preview');
+        }
+      } catch(e) {
+        description.unshift('embedded');
+      }
+    }
+    // Detect BlackBerry OS version.
+    // http://docs.blackberry.com/en/developers/deliverables/18169/HTTP_headers_sent_by_BB_Browser_1234911_11.jsp
+    else if ((/\bBlackBerry\b/.test(product) || /\bBB10\b/.test(ua)) && (data =
+          (RegExp(product.replace(/ +/g, ' *') + '/([.\\d]+)', 'i').exec(ua) || 0)[1] ||
+          version
+        )) {
+      data = [data, /BB10/.test(ua)];
+      os = (data[1] ? (product = null, manufacturer = 'BlackBerry') : 'Device Software') + ' ' + data[0];
+      version = null;
+    }
+    // Detect Opera identifying/masking itself as another browser.
+    // http://www.opera.com/support/kb/view/843/
+    else if (this != forOwn && product != 'Wii' && (
+          (useFeatures && opera) ||
+          (/Opera/.test(name) && /\b(?:MSIE|Firefox)\b/i.test(ua)) ||
+          (name == 'Firefox' && /\bOS X (?:\d+\.){2,}/.test(os)) ||
+          (name == 'IE' && (
+            (os && !/^Win/.test(os) && version > 5.5) ||
+            /\bWindows XP\b/.test(os) && version > 8 ||
+            version == 8 && !/\bTrident\b/.test(ua)
+          ))
+        ) && !reOpera.test((data = parse.call(forOwn, ua.replace(reOpera, '') + ';'))) && data.name) {
+      // When "identifying", the UA contains both Opera and the other browser's name.
+      data = 'ing as ' + data.name + ((data = data.version) ? ' ' + data : '');
+      if (reOpera.test(name)) {
+        if (/\bIE\b/.test(data) && os == 'Mac OS') {
+          os = null;
+        }
+        data = 'identify' + data;
+      }
+      // When "masking", the UA contains only the other browser's name.
+      else {
+        data = 'mask' + data;
+        if (operaClass) {
+          name = format(operaClass.replace(/([a-z])([A-Z])/g, '$1 $2'));
+        } else {
+          name = 'Opera';
+        }
+        if (/\bIE\b/.test(data)) {
+          os = null;
+        }
+        if (!useFeatures) {
+          version = null;
+        }
+      }
+      layout = ['Presto'];
+      description.push(data);
+    }
+    // Detect WebKit Nightly and approximate Chrome/Safari versions.
+    if ((data = (/\bAppleWebKit\/([\d.]+\+?)/i.exec(ua) || 0)[1])) {
+      // Correct build number for numeric comparison.
+      // (e.g. "532.5" becomes "532.05")
+      data = [parseFloat(data.replace(/\.(\d)$/, '.0$1')), data];
+      // Nightly builds are postfixed with a "+".
+      if (name == 'Safari' && data[1].slice(-1) == '+') {
+        name = 'WebKit Nightly';
+        prerelease = 'alpha';
+        version = data[1].slice(0, -1);
+      }
+      // Clear incorrect browser versions.
+      else if (version == data[1] ||
+          version == (data[2] = (/\bSafari\/([\d.]+\+?)/i.exec(ua) || 0)[1])) {
+        version = null;
+      }
+      // Use the full Chrome version when available.
+      data[1] = (/\bChrome\/([\d.]+)/i.exec(ua) || 0)[1];
+      // Detect Blink layout engine.
+      if (data[0] == 537.36 && data[2] == 537.36 && parseFloat(data[1]) >= 28 && layout == 'WebKit') {
+        layout = ['Blink'];
+      }
+      // Detect JavaScriptCore.
+      // http://stackoverflow.com/questions/6768474/how-can-i-detect-which-javascript-engine-v8-or-jsc-is-used-at-runtime-in-androi
+      if (!useFeatures || (!likeChrome && !data[1])) {
+        layout && (layout[1] = 'like Safari');
+        data = (data = data[0], data < 400 ? 1 : data < 500 ? 2 : data < 526 ? 3 : data < 533 ? 4 : data < 534 ? '4+' : data < 535 ? 5 : data < 537 ? 6 : data < 538 ? 7 : data < 601 ? 8 : '8');
+      } else {
+        layout && (layout[1] = 'like Chrome');
+        data = data[1] || (data = data[0], data < 530 ? 1 : data < 532 ? 2 : data < 532.05 ? 3 : data < 533 ? 4 : data < 534.03 ? 5 : data < 534.07 ? 6 : data < 534.10 ? 7 : data < 534.13 ? 8 : data < 534.16 ? 9 : data < 534.24 ? 10 : data < 534.30 ? 11 : data < 535.01 ? 12 : data < 535.02 ? '13+' : data < 535.07 ? 15 : data < 535.11 ? 16 : data < 535.19 ? 17 : data < 536.05 ? 18 : data < 536.10 ? 19 : data < 537.01 ? 20 : data < 537.11 ? '21+' : data < 537.13 ? 23 : data < 537.18 ? 24 : data < 537.24 ? 25 : data < 537.36 ? 26 : layout != 'Blink' ? '27' : '28');
+      }
+      // Add the postfix of ".x" or "+" for approximate versions.
+      layout && (layout[1] += ' ' + (data += typeof data == 'number' ? '.x' : /[.+]/.test(data) ? '' : '+'));
+      // Obscure version for some Safari 1-2 releases.
+      if (name == 'Safari' && (!version || parseInt(version) > 45)) {
+        version = data;
+      }
+    }
+    // Detect Opera desktop modes.
+    if (name == 'Opera' &&  (data = /\bzbov|zvav$/.exec(os))) {
+      name += ' ';
+      description.unshift('desktop mode');
+      if (data == 'zvav') {
+        name += 'Mini';
+        version = null;
+      } else {
+        name += 'Mobile';
+      }
+      os = os.replace(RegExp(' *' + data + '$'), '');
+    }
+    // Detect Chrome desktop mode.
+    else if (name == 'Safari' && /\bChrome\b/.exec(layout && layout[1])) {
+      description.unshift('desktop mode');
+      name = 'Chrome Mobile';
+      version = null;
+
+      if (/\bOS X\b/.test(os)) {
+        manufacturer = 'Apple';
+        os = 'iOS 4.3+';
+      } else {
+        os = null;
+      }
+    }
+    // Strip incorrect OS versions.
+    if (version && version.indexOf((data = /[\d.]+$/.exec(os))) == 0 &&
+        ua.indexOf('/' + data + '-') > -1) {
+      os = trim(os.replace(data, ''));
+    }
+    // Add layout engine.
+    if (layout && !/\b(?:Avant|Nook)\b/.test(name) && (
+        /Browser|Lunascape|Maxthon/.test(name) ||
+        name != 'Safari' && /^iOS/.test(os) && /\bSafari\b/.test(layout[1]) ||
+        /^(?:Adobe|Arora|Breach|Midori|Opera|Phantom|Rekonq|Rock|Samsung Internet|Sleipnir|Web)/.test(name) && layout[1])) {
+      // Don't add layout details to description if they are falsey.
+      (data = layout[layout.length - 1]) && description.push(data);
+    }
+    // Combine contextual information.
+    if (description.length) {
+      description = ['(' + description.join('; ') + ')'];
+    }
+    // Append manufacturer to description.
+    if (manufacturer && product && product.indexOf(manufacturer) < 0) {
+      description.push('on ' + manufacturer);
+    }
+    // Append product to description.
+    if (product) {
+      description.push((/^on /.test(description[description.length - 1]) ? '' : 'on ') + product);
+    }
+    // Parse the OS into an object.
+    if (os) {
+      data = / ([\d.+]+)$/.exec(os);
+      isSpecialCasedOS = data && os.charAt(os.length - data[0].length - 1) == '/';
+      os = {
+        'architecture': 32,
+        'family': (data && !isSpecialCasedOS) ? os.replace(data[0], '') : os,
+        'version': data ? data[1] : null,
+        'toString': function() {
+          var version = this.version;
+          return this.family + ((version && !isSpecialCasedOS) ? ' ' + version : '') + (this.architecture == 64 ? ' 64-bit' : '');
+        }
+      };
+    }
+    // Add browser/OS architecture.
+    if ((data = /\b(?:AMD|IA|Win|WOW|x86_|x)64\b/i.exec(arch)) && !/\bi686\b/i.test(arch)) {
+      if (os) {
+        os.architecture = 64;
+        os.family = os.family.replace(RegExp(' *' + data), '');
+      }
+      if (
+          name && (/\bWOW64\b/i.test(ua) ||
+          (useFeatures && /\w(?:86|32)$/.test(nav.cpuClass || nav.platform) && !/\bWin64; x64\b/i.test(ua)))
+      ) {
+        description.unshift('32-bit');
+      }
+    }
+    // Chrome 39 and above on OS X is always 64-bit.
+    else if (
+        os && /^OS X/.test(os.family) &&
+        name == 'Chrome' && parseFloat(version) >= 39
+    ) {
+      os.architecture = 64;
+    }
+
+    ua || (ua = null);
+
+    /*------------------------------------------------------------------------*/
+
+    /**
+     * The platform object.
+     *
+     * @name platform
+     * @type Object
+     */
+    var platform = {};
+
+    /**
+     * The platform description.
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.description = ua;
+
+    /**
+     * The name of the browser's layout engine.
+     *
+     * The list of common layout engines include:
+     * "Blink", "EdgeHTML", "Gecko", "Trident" and "WebKit"
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.layout = layout && layout[0];
+
+    /**
+     * The name of the product's manufacturer.
+     *
+     * The list of manufacturers include:
+     * "Apple", "Archos", "Amazon", "Asus", "Barnes & Noble", "BlackBerry",
+     * "Google", "HP", "HTC", "LG", "Microsoft", "Motorola", "Nintendo",
+     * "Nokia", "Samsung" and "Sony"
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.manufacturer = manufacturer;
+
+    /**
+     * The name of the browser/environment.
+     *
+     * The list of common browser names include:
+     * "Chrome", "Electron", "Firefox", "Firefox for iOS", "IE",
+     * "Microsoft Edge", "PhantomJS", "Safari", "SeaMonkey", "Silk",
+     * "Opera Mini" and "Opera"
+     *
+     * Mobile versions of some browsers have "Mobile" appended to their name:
+     * eg. "Chrome Mobile", "Firefox Mobile", "IE Mobile" and "Opera Mobile"
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.name = name;
+
+    /**
+     * The alpha/beta release indicator.
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.prerelease = prerelease;
+
+    /**
+     * The name of the product hosting the browser.
+     *
+     * The list of common products include:
+     *
+     * "BlackBerry", "Galaxy S4", "Lumia", "iPad", "iPod", "iPhone", "Kindle",
+     * "Kindle Fire", "Nexus", "Nook", "PlayBook", "TouchPad" and "Transformer"
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.product = product;
+
+    /**
+     * The browser's user agent string.
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.ua = ua;
+
+    /**
+     * The browser/environment version.
+     *
+     * @memberOf platform
+     * @type string|null
+     */
+    platform.version = name && version;
+
+    /**
+     * The name of the operating system.
+     *
+     * @memberOf platform
+     * @type Object
+     */
+    platform.os = os || {
+
+      /**
+       * The CPU architecture the OS is built for.
+       *
+       * @memberOf platform.os
+       * @type number|null
+       */
+      'architecture': null,
+
+      /**
+       * The family of the OS.
+       *
+       * Common values include:
+       * "Windows", "Windows Server 2008 R2 / 7", "Windows Server 2008 / Vista",
+       * "Windows XP", "OS X", "Ubuntu", "Debian", "Fedora", "Red Hat", "SuSE",
+       * "Android", "iOS" and "Windows Phone"
+       *
+       * @memberOf platform.os
+       * @type string|null
+       */
+      'family': null,
+
+      /**
+       * The version of the OS.
+       *
+       * @memberOf platform.os
+       * @type string|null
+       */
+      'version': null,
+
+      /**
+       * Returns the OS string.
+       *
+       * @memberOf platform.os
+       * @returns {string} The OS string.
+       */
+      'toString': function() { return 'null'; }
+    };
+
+    platform.parse = parse;
+    platform.toString = toStringPlatform;
+
+    if (platform.version) {
+      description.unshift(version);
+    }
+    if (platform.name) {
+      description.unshift(name);
+    }
+    if (os && name && !(os == String(os).split(' ')[0] && (os == name.split(' ')[0] || product))) {
+      description.push(product ? '(' + os + ')' : 'on ' + os);
+    }
+    if (description.length) {
+      platform.description = description.join(' ');
+    }
+    return platform;
+  }
+
+  /*--------------------------------------------------------------------------*/
+
+  // Export platform.
+  var platform = parse();
+
+  // Some AMD build optimizers, like r.js, check for condition patterns like the following:
+  if (typeof undefined == 'function' && typeof undefined.amd == 'object' && undefined.amd) {
+    // Expose platform on the global object to prevent errors when platform is
+    // loaded by a script tag in the presence of an AMD loader.
+    // See http://requirejs.org/docs/errors.html#mismatch for more details.
+    root.platform = platform;
+
+    // Define as an anonymous module so platform can be aliased through path mapping.
+    undefined(function() {
+      return platform;
+    });
+  }
+  // Check for `exports` after `define` in case a build optimizer adds an `exports` object.
+  else if (freeExports && freeModule) {
+    // Export for CommonJS support.
+    forOwn(platform, function(value, key) {
+      freeExports[key] = value;
+    });
+  }
+  else {
+    // Export to the global object.
+    root.platform = platform;
+  }
+}.call(commonjsGlobal));
+});
+
+var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")]),_c('hr'),_c('div',[_vm._v("開発環境はGoogle Chromeが中心となります。")]),_c('div',[_vm._v("IE11は対応は考慮しておりますが、全機能の動作は確認しておりません。")]),_c('div',[_vm._v("モバイル環境のレイアウトは考慮しておりません。")]),_c('el-table',{attrs:{"data":_vm.browsers}},[_c('el-table-column',{attrs:{"prop":"title","label":"項目"}}),_c('el-table-column',{attrs:{"prop":"value","label":"データ"}})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-c8f7c99c',
   metaInfo: function () {
     return {
       title: this.title
     }
   },
   data: function data() {
+    function browserData() {
+      return [
+        { title: 'ブラウザ', value: platform$1.name },
+        { title: 'バージョン', value: platform$1.version },
+        { title: 'レイアウトエンジン', value: platform$1.layout },
+        { title: 'ＯＳ', value: platform$1.os.family }
+      ]
+    }
     return {
-      title: 'Welcome'
+      title: 'Welcome',
+      browsers: browserData()
     }
   },
   created: function created() {
@@ -57819,7 +59048,7 @@ var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
   }
 };
 
-var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("在庫・販売状況確認")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("予算データアップロード")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("パスワード変更")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("メールアドレス変更")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"},on:{"click":_vm.goMainte}},[_vm._v("管理機能")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("サインインログ表示")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("アクションログ表示")])],1)],1),_c('hr'),_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.dashboards,"element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"startDateTime","label":"掲載日","width":"180"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.startDateTime)))])]}}])}),_c('el-table-column',{attrs:{"prop":"message","label":"メッセージ"}})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-7d1d8e6e',
+var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"},on:{"click":_vm.goSelect}},[_vm._v("在庫・販売状況確認")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"}},[_vm._v("予算データアップロード")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"}},[_vm._v("パスワード変更")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"}},[_vm._v("メールアドレス変更")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"},on:{"click":_vm.goMainte}},[_vm._v("管理機能")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"}},[_vm._v("サインインログ表示")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{attrs:{"size":"large"}},[_vm._v("アクションログ表示")])],1)],1),_c('hr'),_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.dashboards,"element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"startDateTime","label":"掲載日","width":"180"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.startDateTime)))])]}}])}),_c('el-table-column',{attrs:{"prop":"message","label":"メッセージ"}})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-7d1d8e6e',
   metaInfo: function () {
     return {
       title: this.title
@@ -57832,9 +59061,10 @@ var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm
       dashboards: []
     }
   },
-  computed: {
-  },
   methods: {
+    goSelect: function goSelect() {
+      this.$router.push('/makerselect');
+    },
     goMainte: function goMainte() {
       this.$router.push('/mainte');
     },
@@ -57863,340 +59093,6 @@ var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm
   },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
-      vm.$store.commit('changeBreadcrumb',
-        { path: vm.$route.path, name: vm.title }
-      );
-    });
-  }
-};
-
-var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',[_c('el-col',{attrs:{"xs":8,"sm":6,"md":4,"lg":3}},[_c('el-menu',{attrs:{"mode":"vertical","theme":"dark","router":true}},[_c('el-menu-item',{attrs:{"index":"/mainte"}},[_vm._v("管理メニュー")]),_c('el-menu-item',{attrs:{"index":"/mainte/users"}},[_vm._v("ユーザーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/roles"}},[_vm._v("ロールメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/makers"}},[_vm._v("メーカーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/products"}},[_vm._v("商品メンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/groups"}},[_vm._v("グループメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/dashboards"}},[_vm._v("ダッシュボードメンテ")])],1)],1),_c('el-col',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoading),expression:"nowLoading"}],attrs:{"xs":16,"sm":18,"md":20,"lg":21,"element-loading-text":_vm.loadingMessage}},[_c('router-view')],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-4155bba6',
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function data() {
-    return {
-      title: '管理機能'
-    }
-  },
-  computed: {
-    nowLoading: function () {
-      return this.$store.getters.nowLoadingMainte
-    },
-    loadingMessage: function () {
-      return this.$store.getters.loadingMessage
-    }
-  }
-};
-
-var MainteMenu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',[_vm._v("管理機能へようこそ")]),_c('div',[_vm._v("ログイン者権限によりますが、左記メニューより機能を選択してください。")])])}],_scopeId: 'data-v-5364a108',
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function () {
-    return {
-      title: '管理機能'
-    }
-  },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      vm.$store.commit('changeBreadcrumb',
-        { path: vm.$route.path, name: vm.title }
-      );
-    });
-  }
-};
-
-var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-button',{on:{"click":_vm.useradd}},[_vm._v("新規登録")]),_c('el-table',{attrs:{"data":_vm.users,"stripe":"","height":"480"}},[_c('el-table-column',{attrs:{"prop":"userName","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"ユーザー名","min-width":"200"}}),_c('el-table-column',{attrs:{"prop":"expiration","label":"有効期限","sortable":"","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.expiration)))])]}}])}),_c('el-table-column',{attrs:{"prop":"email","label":"メールアドレス","min-width":"300"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("boolMessage")(scope.row.enabled,'許可', '不可')))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])}),_c('el-table-column',{attrs:{"label":"機能","fixed":"left","width":"200"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.edit(scope.row.id);}}},[_vm._v("edit")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.role(scope.row.id);}}},[_vm._v("role")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.maker(scope.row.id);}}},[_vm._v("maker")])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-760b4f99',
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function data() {
-    return {
-      title: 'ユーザー管理',
-      users: [],
-      enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
-      disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
-    }
-  },
-  methods: {
-    filterEnabled: function filterEnabled(value, row) {
-      return row.enabled.toString() === value
-    },
-    filterDisabled: function filterDisabled(value, row) {
-      return row.deleted.toString() === value
-    },
-    getUsers: function getUsers() {
-      var this$1 = this;
-
-      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
-      this.$store.dispatch('maintenance/getUsers').then(function (response) {
-        var items = response.data;
-        this$1.users = this$1.minotaka.makeArray(items);
-        this$1.$store.dispatch('endLoading');
-      }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.$store.dispatch('endLoading');
-      });
-    },
-    edit: function edit(id) {
-      this.$router.push({ name: 'useredit', params: { id: id } });
-    },
-    role: function role(id) {
-      this.$router.push({ name: 'userroles', params: { id: id } });
-    },
-    maker: function maker(id) {
-      this.$router.push({ name: 'usermakers', params: { id: id } });
-    },
-    useradd: function useradd() {
-      this.$router.push({ name: 'useradd' });
-    }
-  },
-  created: function created() {
-    this.getUsers();
-  },
-  watch: {
-    '$route': 'getUsers'
-  },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      vm.$store.commit('changeBreadcrumb',
-        { path: vm.$route.path, name: vm.title }
-      );
-    });
-  }
-};
-
-var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',{attrs:{"label":"メール認証"}},[_c('el-switch',{attrs:{"on-text":"済","off-text":"未"},model:{value:(_vm.user.emailConfirmed),callback:function ($$v) {_vm.user.emailConfirmed=$$v;},expression:"user.emailConfirmed"}})],1),_c('el-form-item',{attrs:{"label":"有効期限"}},[_vm._v(_vm._s(_vm._f("converetDateFormat")(_vm.user.expiration))),_c('i',{staticClass:"material-icons",staticStyle:{"font-size":"13px","margin-left":"8px","margin-right":"8px"}},[_vm._v("")]),_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.newExpiration),callback:function ($$v) {_vm.user.newExpiration=$$v;},expression:"user.newExpiration"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト"}},[_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.lockoutEndData),callback:function ($$v) {_vm.user.lockoutEndData=$$v;},expression:"user.lockoutEndData"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト対象"}},[_c('el-switch',{model:{value:(_vm.user.lockoutEnabled),callback:function ($$v) {_vm.user.lockoutEnabled=$$v;},expression:"user.lockoutEnabled"}})],1),_c('el-form-item',{attrs:{"label":"連続入力ミス"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.accessFailedCount),callback:function ($$v) {_vm.user.accessFailedCount=$$v;},expression:"user.accessFailedCount"}})],1),_c('el-form-item',{attrs:{"label":"パスワードスキップ"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.passwordSkipCnt),callback:function ($$v) {_vm.user.passwordSkipCnt=$$v;},expression:"user.passwordSkipCnt"}})],1),_c('el-form-item',{attrs:{"label":"新パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"使用許可"}},[_c('el-switch',{attrs:{"on-text":"許可","off-text":""},model:{value:(_vm.user.enabled),callback:function ($$v) {_vm.user.enabled=$$v;},expression:"user.enabled"}})],1),_c('el-form-item',{attrs:{"label":"削除"}},[_c('el-switch',{attrs:{"on-text":"削除","off-text":""},model:{value:(_vm.user.deleted),callback:function ($$v) {_vm.user.deleted=$$v;},expression:"user.deleted"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-522f9ad4',
-  props: ['id'],
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function data() {
-    return {
-      title: 'ユーザー編集',
-      user: {},
-      checkRules: {
-        userName: [
-          { type: "string", required: true, message: '入力は必須です', trigger: 'blur' },
-          { type: "string", min: 5, max: 256, message: '桁数が正しくありません', trigger: 'blur' },
-          { type: "string", pattern: /^[a-zA-Z\d@_]{5,256}$/, message: '不正な書式です', trigger: 'blur' }
-        ],
-        name: [
-          { max: 256, message: '桁数が正しくありません', trigger: 'blur' }
-        ],
-        newPassword: [
-          { type: "string", pattern: /^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[[!-~]{6,128}$/, message: '不正な書式です', trigger: 'blur' }
-        ],
-        email: [
-          { type: "email", required: true, message: 'メールアドレスを入力してください', trigger: 'blur' },
-          { max: 128, message: '桁数が正しくありません', trigger: 'blur' }
-        ]
-      }
-    }
-  },
-  methods: {
-    getUser: function getUser() {
-      var this$1 = this;
-
-      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
-        var item = response.data;
-        this$1.user = this$1.minotaka.makeSingleType(item, "object");
-      }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
-      })
-    },
-    submitForm: function submitForm(formName) {
-      var this$1 = this;
-
-      this.$refs[formName].validate(function (valid) {
-        if (valid) {
-          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
-          this$1.$store.dispatch('maintenance/setUser', this$1.user).then(function (response) {
-            this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
-            this$1.$store.dispatch('endLoading');
-            this$1.$router.go(-1);
-          }).catch(function (error) {
-            this$1.$store.dispatch('endLoading');
-            this$1.$notify.error({ title: 'Error', message: error.message });
-          });
-        } else {
-          return false
-        }
-      });
-    },
-    cancel: function cancel() {
-      this.$router.go(-1);
-    }
-  },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
-      vm.$store.commit('changeBreadcrumb',
-        { path: vm.$route.path, name: vm.title }
-      );
-      vm.getUser().then(function () {
-        vm.$store.dispatch('endLoading');
-      });
-    });
-  }
-};
-
-var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("登録")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-79649572',
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function data() {
-    return {
-      title: 'ユーザー登録',
-      user: {
-        id: 0,
-        userName: null,
-        name: null,
-        expiration: null,
-        passwordSkipCnt: 0,
-        email: null,
-        emailConfirmed: false,
-        lockoutEndData: null,
-        lockoutEnabled: true,
-        accessFailedCount: 0,
-        enabled: true,
-        deleted: false,
-        newExpiration: null,
-        newPassword: null
-      },
-      checkRules: {
-        userName: [
-          { type: "string", required: true, message: '入力は必須です', trigger: 'blur' },
-          { type: "string", min: 5, max: 256, message: '桁数が正しくありません', trigger: 'blur' },
-          { type: "string", pattern: /^[a-zA-Z\d@_]{5,256}$/, message: '不正な書式です', trigger: 'blur' }
-        ],
-        name: [
-          { max: 256, message: '桁数が正しくありません', trigger: 'blur' }
-        ],
-        newPassword: [
-          { type: "string", pattern: /^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[[!-~]{6,128}$/, message: '不正な書式です', trigger: 'blur' }
-        ],
-        email: [
-          { type: "email", required: true, message: 'メールアドレスを入力してください', trigger: 'blur' },
-          { max: 128, message: '桁数が正しくありません', trigger: 'blur' }
-        ]
-      }
-    }
-  },
-  methods: {
-    submitForm: function submitForm(formName) {
-      var this$1 = this;
-
-      this.$refs[formName].validate(function (valid) {
-        if (valid) {
-          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報登録中');
-          this$1.$store.dispatch('maintenance/addUser', this$1.user).then(function (response) {
-            this$1.$notify({ title: '登録完了', message: 'ユーザーの登録を行いました' });
-            this$1.$store.dispatch('endLoading');
-            this$1.$router.go(-1);
-          }).catch(function (error) {
-            this$1.$notify.error({ title: 'Error', message: error.message });
-            this$1.$store.dispatch('endLoading');
-          });
-        } else {
-          return false
-        }
-      });
-    },
-    cancel: function cancel() {
-      this.$router.go(-1);
-    }
-  },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      vm.$store.commit('changeBreadcrumb',
-        { path: vm.$route.path, name: vm.title }
-      );
-    });
-  }
-};
-
-var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-transfer',{attrs:{"data":_vm.roleList,"button-texts":['剥奪', '付与'],"titles":['未付与権限', '付与済み'],"props":{key: 'name', label: 'name'}},model:{value:(_vm.roles),callback:function ($$v) {_vm.roles=$$v;},expression:"roles"}}),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-7aaff1e3',
-  props: ['id'],
-  metaInfo: function () {
-    return {
-      title: this.title
-    }
-  },
-  data: function data() {
-    return {
-      title: 'ユーザー権限',
-      user: {},
-      roles: [],
-      roleList: []
-    }
-  },
-  methods: {
-    getUser: function getUser() {
-      var this$1 = this;
-
-      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
-        this$1.user = this$1.minotaka.makeSingleType(response.data, "object");
-      }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
-      })
-    },
-    getUserRoles: function getUserRoles() {
-      var this$1 = this;
-
-      return this.$store.dispatch('maintenance/getUserRoles', this.id).then(function (response) {
-        this$1.roles = this$1.minotaka.makeArray(response.data, "string");
-      }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
-      })
-    },
-    getRoles: function getRoles() {
-      var this$1 = this;
-
-      this.roleList = [];
-      return this.$store.dispatch('maintenance/getRoleList').then(function (response) {
-        this$1.roleList = this$1.minotaka.makeArray(response.data);
-      }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
-      })
-    },
-    submitForm: function submitForm() {
-      var this$1 = this;
-
-      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
-      this.$store.dispatch('maintenance/setUserRoles', { id: this.id, roles: this.roles }).then(function (response) {
-        this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
-        this$1.$store.dispatch('endLoading');
-        this$1.$router.go(-1);
-      }).catch(function (error) {
-        this$1.$store.dispatch('endLoading');
-        this$1.$notify.error({ title: 'Error', message: error.message });
-      });
-    },
-    cancel: function cancel() {
-      this.$router.go(-1);
-    }
-  },
-  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
-    next(function (vm) {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
-      vm.getUser();
-      vm.getRoles().then(function () {
-        vm.getUserRoles().then(function () {
-          vm.$store.dispatch('endLoading');
-        });
-      });
       vm.$store.commit('changeBreadcrumb',
         { path: vm.$route.path, name: vm.title }
       );
@@ -61280,6 +62176,428 @@ var linq = createCommonjsModule(function (module) {
 })(commonjsGlobal);
 });
 
+var MakerSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{attrs:{"label-width":"150px"}},[_c('el-form-item',{attrs:{"label":"担当メーカーのみ"}},[_c('el-switch',{attrs:{"on-text":"","off-text":""},model:{value:(_vm.selectMyMaker),callback:function ($$v) {_vm.selectMyMaker=$$v;},expression:"selectMyMaker"}})],1)],1),_c('el-table',{ref:"makerTable",attrs:{"data":_vm.showData,"height":"480","stripe":"","highlight-current-row":""},on:{"current-change":_vm.currentChange,"row-click":_vm.makerSelect}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-01bd856e',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'メーカー選択',
+      myId: 0,
+      makers: [],
+      myMakers: [],
+      selectMyMaker: this.$store.getters.selectMyMaker,
+      form: {}
+    }
+  },
+  computed: {
+    userId: function userId() {
+      return this.$store.getters.userId
+    },
+    showData: function showData() {
+      return this.selectMyMaker ? this.myMakers : this.makers
+    }
+  },
+  methods: {
+    getScreenData: function getScreenData() {
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoading', 'データ取得中');
+      Promise.all([this.$store.dispatch('getMakers'), this.$store.dispatch('getMyMakers', this.userId)]).then(function (value) {
+        this$1.makers = linq.from(this$1.minotaka.makeArray(value[0].data)).orderBy(function (x) { return x.code; }).toArray();
+        this$1.myMakers = linq.from(this$1.minotaka.makeArray(value[1].data)).orderBy(function (x) { return x.code; }).toArray();
+        this$1.$store.dispatch('endLoading');
+      }, function (reasone) {
+        this$1.$store.dispatch('endLoading');
+        this$1.$notify.error({ title: 'Error', message: reasone.message });
+      });
+    },
+    setCurrent: function setCurrent(id) {
+      var row = linq.from(this.minotaka.makeArray(this.showData)).select(function (x) { return x.id === id; }).toSingleOrDefault(null);
+      this.$refs.makerTable.setCurrentRow(row);
+    },
+    currentChange: function currentChange(sel) {
+      this.currentRow = sel;
+    },
+    makerSelect: function makerSelect(row, event, column) {
+      this.$store.commit('selectMaker', row);
+    },
+    saveToggleMyMaker: function saveToggleMyMaker() {
+      this.$store.commit('selectMyMaker', this.selectMyMaker);
+    }
+  },
+  created: function created() {
+    this.getScreenData();
+  },
+  watch: {
+    '$route': 'getScreenData',
+    'selectMyMaker': 'saveToggleMyMaker'
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
+var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',[_c('el-col',{attrs:{"xs":8,"sm":6,"md":4,"lg":3}},[_c('el-menu',{attrs:{"mode":"vertical","theme":"dark","router":true}},[_c('el-menu-item',{attrs:{"index":"/mainte"}},[_vm._v("管理メニュー")]),_c('el-menu-item',{attrs:{"index":"/mainte/users"}},[_vm._v("ユーザーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/roles"}},[_vm._v("ロールメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/makers"}},[_vm._v("メーカーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/products"}},[_vm._v("商品メンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/groups"}},[_vm._v("グループメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/dashboards"}},[_vm._v("ダッシュボードメンテ")])],1)],1),_c('el-col',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoading),expression:"nowLoading"}],attrs:{"xs":16,"sm":18,"md":20,"lg":21,"element-loading-text":_vm.loadingMessage}},[_c('router-view')],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-4155bba6',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: '管理機能'
+    }
+  },
+  computed: {
+    nowLoading: function () {
+      return this.$store.getters.nowLoadingMainte
+    },
+    loadingMessage: function () {
+      return this.$store.getters.loadingMessage
+    }
+  }
+};
+
+var MainteMenu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',[_vm._v("管理機能へようこそ")]),_c('div',[_vm._v("ログイン者権限によりますが、左記メニューより機能を選択してください。")])])}],_scopeId: 'data-v-5364a108',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function () {
+    return {
+      title: '管理機能'
+    }
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
+var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-button',{on:{"click":_vm.useradd}},[_vm._v("新規登録")]),_c('el-table',{attrs:{"data":_vm.users,"stripe":"","height":"480"}},[_c('el-table-column',{attrs:{"prop":"userName","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"ユーザー名","min-width":"200"}}),_c('el-table-column',{attrs:{"prop":"expiration","label":"有効期限","sortable":"","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.expiration)))])]}}])}),_c('el-table-column',{attrs:{"prop":"email","label":"メールアドレス","min-width":"300"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("boolMessage")(scope.row.enabled,'許可', '不可')))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])}),_c('el-table-column',{attrs:{"label":"機能","fixed":"left","width":"200"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.edit(scope.row.id);}}},[_vm._v("edit")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.role(scope.row.id);}}},[_vm._v("role")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.maker(scope.row.id);}}},[_vm._v("maker")])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-760b4f99',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'ユーザー管理',
+      users: [],
+      enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
+      disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
+    }
+  },
+  methods: {
+    filterEnabled: function filterEnabled(value, row) {
+      return row.enabled.toString() === value
+    },
+    filterDisabled: function filterDisabled(value, row) {
+      return row.deleted.toString() === value
+    },
+    getUsers: function getUsers() {
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      this.$store.dispatch('maintenance/getUsers').then(function (response) {
+        var items = response.data;
+        this$1.users = this$1.minotaka.makeArray(items);
+        this$1.$store.dispatch('endLoading');
+      }).catch(function (error) {
+        this$1.$notify.error({ title: 'Error', message: error.message });
+        this$1.$store.dispatch('endLoading');
+      });
+    },
+    edit: function edit(id) {
+      this.$router.push({ name: 'useredit', params: { id: id } });
+    },
+    role: function role(id) {
+      this.$router.push({ name: 'userroles', params: { id: id } });
+    },
+    maker: function maker(id) {
+      this.$router.push({ name: 'usermakers', params: { id: id } });
+    },
+    useradd: function useradd() {
+      this.$router.push({ name: 'useradd' });
+    }
+  },
+  created: function created() {
+    this.getUsers();
+  },
+  watch: {
+    '$route': 'getUsers'
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
+var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',{attrs:{"label":"メール認証"}},[_c('el-switch',{attrs:{"on-text":"済","off-text":"未"},model:{value:(_vm.user.emailConfirmed),callback:function ($$v) {_vm.user.emailConfirmed=$$v;},expression:"user.emailConfirmed"}})],1),_c('el-form-item',{attrs:{"label":"有効期限"}},[_vm._v(_vm._s(_vm._f("converetDateFormat")(_vm.user.expiration))),_c('i',{staticClass:"material-icons",staticStyle:{"font-size":"13px","margin-left":"8px","margin-right":"8px"}},[_vm._v("")]),_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.newExpiration),callback:function ($$v) {_vm.user.newExpiration=$$v;},expression:"user.newExpiration"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト"}},[_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.lockoutEndData),callback:function ($$v) {_vm.user.lockoutEndData=$$v;},expression:"user.lockoutEndData"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト対象"}},[_c('el-switch',{model:{value:(_vm.user.lockoutEnabled),callback:function ($$v) {_vm.user.lockoutEnabled=$$v;},expression:"user.lockoutEnabled"}})],1),_c('el-form-item',{attrs:{"label":"連続入力ミス"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.accessFailedCount),callback:function ($$v) {_vm.user.accessFailedCount=$$v;},expression:"user.accessFailedCount"}})],1),_c('el-form-item',{attrs:{"label":"パスワードスキップ"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.passwordSkipCnt),callback:function ($$v) {_vm.user.passwordSkipCnt=$$v;},expression:"user.passwordSkipCnt"}})],1),_c('el-form-item',{attrs:{"label":"新パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"使用許可"}},[_c('el-switch',{attrs:{"on-text":"許可","off-text":""},model:{value:(_vm.user.enabled),callback:function ($$v) {_vm.user.enabled=$$v;},expression:"user.enabled"}})],1),_c('el-form-item',{attrs:{"label":"削除"}},[_c('el-switch',{attrs:{"on-text":"削除","off-text":""},model:{value:(_vm.user.deleted),callback:function ($$v) {_vm.user.deleted=$$v;},expression:"user.deleted"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-522f9ad4',
+  props: ['id'],
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'ユーザー編集',
+      user: {},
+      checkRules: {
+        userName: [
+          { type: "string", required: true, message: '入力は必須です', trigger: 'blur' },
+          { type: "string", min: 5, max: 256, message: '桁数が正しくありません', trigger: 'blur' },
+          { type: "string", pattern: /^[a-zA-Z\d@_]{5,256}$/, message: '不正な書式です', trigger: 'blur' }
+        ],
+        name: [
+          { max: 256, message: '桁数が正しくありません', trigger: 'blur' }
+        ],
+        newPassword: [
+          { type: "string", pattern: /^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[[!-~]{6,128}$/, message: '不正な書式です', trigger: 'blur' }
+        ],
+        email: [
+          { type: "email", required: true, message: 'メールアドレスを入力してください', trigger: 'blur' },
+          { max: 128, message: '桁数が正しくありません', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  methods: {
+    getUser: function getUser() {
+      var this$1 = this;
+
+      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
+        var item = response.data;
+        this$1.user = this$1.minotaka.makeSingleType(item, "object");
+      }).catch(function (error) {
+        this$1.$notify.error({ title: 'Error', message: error.message });
+      })
+    },
+    getUserEditData: function getUserEditData(){
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      this.getUser().then(function () {
+        this$1.$store.dispatch('endLoading');
+      });
+    },
+    submitForm: function submitForm(formName) {
+      var this$1 = this;
+
+      this.$refs[formName].validate(function (valid) {
+        if (valid) {
+          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
+          this$1.$store.dispatch('maintenance/setUser', this$1.user).then(function (response) {
+            this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
+            this$1.$store.dispatch('endLoading');
+            this$1.$router.go(-1);
+          }).catch(function (error) {
+            this$1.$store.dispatch('endLoading');
+            this$1.$notify.error({ title: 'Error', message: error.message });
+          });
+        } else {
+          return false
+        }
+      });
+    },
+    cancel: function cancel() {
+      this.$router.go(-1);
+    }
+  },
+  created: function created() {
+    this.getUserEditData();
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
+var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("登録")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-79649572',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'ユーザー登録',
+      user: {
+        id: 0,
+        userName: null,
+        name: null,
+        expiration: null,
+        passwordSkipCnt: 0,
+        email: null,
+        emailConfirmed: false,
+        lockoutEndData: null,
+        lockoutEnabled: true,
+        accessFailedCount: 0,
+        enabled: true,
+        deleted: false,
+        newExpiration: null,
+        newPassword: null
+      },
+      checkRules: {
+        userName: [
+          { type: "string", required: true, message: '入力は必須です', trigger: 'blur' },
+          { type: "string", min: 5, max: 256, message: '桁数が正しくありません', trigger: 'blur' },
+          { type: "string", pattern: /^[a-zA-Z\d@_]{5,256}$/, message: '不正な書式です', trigger: 'blur' }
+        ],
+        name: [
+          { max: 256, message: '桁数が正しくありません', trigger: 'blur' }
+        ],
+        newPassword: [
+          { type: "string", pattern: /^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?\d)[[!-~]{6,128}$/, message: '不正な書式です', trigger: 'blur' }
+        ],
+        email: [
+          { type: "email", required: true, message: 'メールアドレスを入力してください', trigger: 'blur' },
+          { max: 128, message: '桁数が正しくありません', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  methods: {
+    submitForm: function submitForm(formName) {
+      var this$1 = this;
+
+      this.$refs[formName].validate(function (valid) {
+        if (valid) {
+          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報登録中');
+          this$1.$store.dispatch('maintenance/addUser', this$1.user).then(function (response) {
+            this$1.$notify({ title: '登録完了', message: 'ユーザーの登録を行いました' });
+            this$1.$store.dispatch('endLoading');
+            this$1.$router.go(-1);
+          }).catch(function (error) {
+            this$1.$notify.error({ title: 'Error', message: error.message });
+            this$1.$store.dispatch('endLoading');
+          });
+        } else {
+          return false
+        }
+      });
+    },
+    cancel: function cancel() {
+      this.$router.go(-1);
+    }
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
+var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-transfer',{attrs:{"data":_vm.roleList,"button-texts":['剥奪', '付与'],"titles":['未付与権限', '付与済み'],"props":{key: 'name', label: 'name'}},model:{value:(_vm.roles),callback:function ($$v) {_vm.roles=$$v;},expression:"roles"}}),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-7aaff1e3',
+  props: ['id'],
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'ユーザー権限',
+      user: {},
+      roles: [],
+      roleList: []
+    }
+  },
+  methods: {
+    getUser: function getUser() {
+      var this$1 = this;
+
+      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
+        this$1.user = this$1.minotaka.makeSingleType(response.data, "object");
+      }).catch(function (error) {
+        this$1.$notify.error({ title: 'Error', message: error.message });
+      })
+    },
+    getUserRoles: function getUserRoles() {
+      var this$1 = this;
+
+      return this.$store.dispatch('maintenance/getUserRoles', this.id).then(function (response) {
+        this$1.roles = this$1.minotaka.makeArray(response.data, "string");
+      }).catch(function (error) {
+        this$1.$notify.error({ title: 'Error', message: error.message });
+      })
+    },
+    getRoles: function getRoles() {
+      var this$1 = this;
+
+      this.roleList = [];
+      return this.$store.dispatch('maintenance/getRoleList').then(function (response) {
+        this$1.roleList = this$1.minotaka.makeArray(response.data);
+      }).catch(function (error) {
+        this$1.$notify.error({ title: 'Error', message: error.message });
+      })
+    },
+    getUserEditData: function getUserEditData() {
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      this.getUser();
+      this.getRoles().then(function () {
+        this$1.getUserRoles().then(function () {
+          this$1.$store.dispatch('endLoading');
+        });
+      });
+    },
+    submitForm: function submitForm() {
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
+      this.$store.dispatch('maintenance/setUserRoles', { id: this.id, roles: this.roles }).then(function (response) {
+        this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
+        this$1.$store.dispatch('endLoading');
+        this$1.$router.go(-1);
+      }).catch(function (error) {
+        this$1.$store.dispatch('endLoading');
+        this$1.$notify.error({ title: 'Error', message: error.message });
+      });
+    },
+    cancel: function cancel() {
+      this.$router.go(-1);
+    }
+  },
+  created: function created() {
+    this.getUserEditData();
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
+  beforeRouteEnter: function beforeRouteEnter(to, from, next) {
+    next(function (vm) {
+      vm.$store.commit('changeBreadcrumb',
+        { path: vm.$route.path, name: vm.title }
+      );
+    });
+  }
+};
+
 var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-row',[_c('el-col',{attrs:{"span":12}},[_c('el-table',{staticStyle:{"width":"100%"},attrs:{"data":_vm.makers,"height":"400"}},[_c('el-table-column',{attrs:{"label":"担当メーカー"}},[_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1),_c('el-col',{attrs:{"span":12}},[_c('el-table',{ref:"multipleTable",staticStyle:{"width":"100%"},attrs:{"data":_vm.makerList,"height":"400"},on:{"selection-change":_vm.selectChange}},[_c('el-table-column',{attrs:{"label":"メーカー一覧"}},[_c('el-table-column',{attrs:{"type":"selection","width":"55"}}),_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1)],1),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-d792c30e',
   props: ['id'],
   metaInfo: function () {
@@ -61332,6 +62650,17 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
         this$1.$notify.error({ title: 'Error', message: error.message });
       })
     },
+    getUserEditData: function getUserEditData() {
+      var this$1 = this;
+
+      this.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
+      this.getUser();
+      this.getMakers().then(function () {
+        this$1.getUserMakers().then(function () {
+          this$1.$store.dispatch('endLoading');
+        });
+      });
+    },
     submitForm: function submitForm() {
       var this$1 = this;
 
@@ -61352,16 +62681,14 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
       this.makers = sels;
     }
   },
+  created: function created() {
+    this.getUserEditData();
+  },
+  watch: {
+    '$route': 'getUserEditData'
+  },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
-      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
-      vm.getUser();
-      vm.getMakers().then(function () {
-        vm.getUserMakers().then(function () {
-          vm.$store.dispatch('endLoading');
-
-        });
-      });
       vm.$store.commit('changeBreadcrumb',
         { path: vm.$route.path, name: vm.title }
       );
@@ -61428,8 +62755,6 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
       deletedFilters: [{ text: '削除済み', value: 'true' }, { text: '未削除', value: 'false' }],
       makers: []
     }
-  },
-  computed: {
   },
   methods: {
     filterEnabled: function filterEnabled(value, row) {
@@ -61559,17 +62884,18 @@ var routes = [
     children: [
       { path: '', redirect: 'maintemenu' },
       { path: 'maintemenu', component: MainteMenu },
-      { path: 'users', component: Users },
-      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true },
-      { path: 'users/add', component: UserAdd, name: 'useradd' },
-      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true },
-      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true },
-      { path: 'roles', component: Roles },
-      { path: 'makers', component: Makers },
-      { path: 'products', component: Products }
+      { path: 'users', component: Users, meta: { requiresUser: true } },
+      { path: 'users/:id/edit', component: UserEdit, name: 'useredit', props: true, meta: { requiresUser: true } },
+      { path: 'users/add', component: UserAdd, name: 'useradd', meta: { requiresUser: true } },
+      { path: 'users/:id/roles', component: UserRoles, name: 'userroles', props: true, meta: { requiresUser: true } },
+      { path: 'users/:id/makers', component: UserMakers, name: 'usermakers', props: true, meta: { requiresUser: true } },
+      { path: 'roles', component: Roles, meta: { requiresAdmin: true } },
+      { path: 'makers', component: Makers, meta: { requiresMaker: true } },
+      { path: 'products', component: Products, meta: { requiresProduct: true } }
     ],
     meta: { requiresAuth: true }
   },
+  { path: '/makerselect', component: MakerSelect, meta: { requiresAuth: true } },
   { path: '*', redirect: '/' }
 ];
 
@@ -66514,6 +67840,27 @@ var auth = {
     isAuthenticated: function (state) {
       return state.userId !== 0
     },
+    isAdminRole: function (state) {
+      return state.roles.indexOf("admin") >= 0
+    },
+    isUserRole: function (state, getters) {
+      return getters.isAdminRole || state.roles.indexOf("user") >= 0
+    },
+    isMakerRole: function (state, getters) {
+      return getters.isAdminRole || state.roles.indexOf("maker") >= 0
+    },
+    isGroupRole: function (state, getters) {
+      return getters.isAdminRole || state.roles.indexOf("group") >= 0
+    },
+    isProductRole: function (state, getters) {
+      return getters.isAdminRole || state.roles.indexOf("product") >= 0
+    },
+    isLogviewRole: function (state, getters) {
+      return getters.isAdminRole || state.roles.indexOf("logview") >= 0
+    },
+    userId: function (state) {
+      return state.userId
+    },
     siginId: function (state, getters) {
       if (!getters.isAuthenticated) {
         return null;
@@ -66539,6 +67886,66 @@ var auth = {
 };
 
 // Vue関連
+var actions$2 = {
+  getMakers: function getMakers(ref) {
+    var commit = ref.commit;
+    var state = ref.state;
+
+    return Vue$3.axios.get("api/makers")
+  },
+  getMyMakers: function getMyMakers(ref, id) {
+    var commit = ref.commit;
+    var state = ref.state;
+
+    return Vue$3.axios.get("api/users/" + id + "/makers")
+  },
+  getGroupsByMakerId: function getGroupsByMakerId(ref, id) {
+    var commit = ref.commit;
+    var state = ref.state;
+
+    return Vue$3.axios.get("api/groups", {
+      params: { "MakerId": id }
+    })
+  },
+  getProducts: function getProducts(ref) {
+    var commit = ref.commit;
+    var products = ref.products;
+
+    return Vue$3.axios.get("api/products")
+  }
+};
+
+var mutations$2 = {
+  selectMaker: function selectMaker(state, item){
+    state.selectMaker = item;
+  },
+  selectMyMaker: function selectMyMaker(state, item){
+    state.selectMyMaker = item;
+  }
+};
+
+var getters$2 = {
+  selectMaker: function selectMaker(state, getters, rootState) {
+    return state.selectMaker
+  },
+  selectMyMaker: function selectMyMaker(state, getters, rootState) {
+    return state.selectMyMaker
+  }
+};
+
+// アプリケーション
+var app$1 = {
+  namespaced: false,
+  actions: actions$2,
+  mutations: mutations$2,
+  getters: getters$2,
+  state: {
+    selectMyMaker: true,
+    selectMaker: null
+  }
+};
+
+// Vue関連
 // ライブラリ
 // アプリケーション
 // 設定
@@ -66547,7 +67954,8 @@ Vue$3.use(index_esm);
 var store$1 = new index_esm.Store({
   modules: {
     maintenance: maintenance,
-    authentication: auth
+    authentication: auth,
+    application: app$1
   },
   actions: actions,
   mutations: mutations,
@@ -66672,6 +68080,9 @@ index$17.interceptors.response.use(function (response) {
 // 独自機能設定
 Vue$3.use(minotakaPlugins);
 
+// Vue.mixin({
+// })
+
 // フィルタ設定
 Vue$3.filter('converetDateFormat', function (value, format) {
   try {
@@ -66704,21 +68115,35 @@ var router = new VueRouter({
   routes: routes
 });
 
+router.onError(function (error) {
+  ElementUI.Notification.warning({ title: 'NG', message: error.message });
+});
+
 router.beforeEach(function (to, from, next) {
-  console.log(from);
-  console.log(to);
-  console.log('----------');
-  if (to.matched.some(function (record) { return record.meta.requiresAuth; })) {
-    if (!store$1.getters.isAuthenticated) {
-      // next({ path: '/signin', query: { redirect: to.fullPath } })
-      // Vue.notify({ title: 'NG', message: 'ここに遷移は出来ません', type: 'warning' });
-      if (from.name === null) {
-        next({ path: '/' });
-      } else {
-        next(false);
-      }
+  var result = true;
+  var auth = store$1.getters.isAuthenticated;
+  var notify = { title: '', message: '' };
+  if (to.matched.some(function (record) { return record.meta.requiresAuth; }) && store$1.getters.isAuthenticated === false) {
+    result = false;
+    notify = { title: 'ログインが確認できません', message: 'ログインを行ってください' };
+  }
+  if ((to.matched.some(function (record) { return record.meta.requiresAdmin; }) && store$1.getters.isAdminRole === false)
+    || (to.matched.some(function (record) { return record.meta.requiresUser; }) && store$1.getters.isUserRole === false)
+    || (to.matched.some(function (record) { return record.meta.requiresMaker; }) && store$1.getters.isMakerRole === false)
+    || (to.matched.some(function (record) { return record.meta.requiresGroup; }) && store$1.getters.isGroupRole === false)
+    || (to.matched.some(function (record) { return record.meta.requiresProduct; }) && store$1.getters.isProductRole === false)
+    || (to.matched.some(function (record) { return record.meta.requiresLogview; }) && store$1.getters.isLogviewRole === false)) {
+    result = false;
+    notify = { title: '機能が利用できません', message: '権限が不足しているために機能を利用することが出来ません' };
+  }
+
+  if (result === false) {
+    // next(new Error("遷移できんぞ"))
+    ElementUI.Notification.error(notify);
+    if (auth === false) {
+      next({ path: '/signin', query: { redirect: to.fullPath } });
     } else {
-      next();
+      next(false);
     }
   } else {
     next();
