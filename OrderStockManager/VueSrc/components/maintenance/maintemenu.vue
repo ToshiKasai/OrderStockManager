@@ -6,13 +6,20 @@ div
 
 <script>
 export default {
-  metaInfo: {
-    title: '管理機能',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function () {
+    return {
+      title: '管理機能'
+    }
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte', name: '管理画面' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

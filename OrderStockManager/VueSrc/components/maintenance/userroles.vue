@@ -11,12 +11,14 @@ div.basemargin
 <script>
 export default {
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザー権限',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
-      loading: false,
+      title: 'ユーザー権限',
       user: {},
       roles: [],
       roleList: []
@@ -70,7 +72,7 @@ export default {
         })
       })
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/roles', name: 'ユーザー権限' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

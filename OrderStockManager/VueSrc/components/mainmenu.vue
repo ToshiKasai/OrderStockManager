@@ -27,11 +27,14 @@ div
 
 <script>
 export default {
-  metaInfo: {
-    title: 'メニュー',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function () {
     return {
+      title: 'メニュー',
       loading: false,
       dashboards: []
     }
@@ -56,7 +59,7 @@ export default {
   },
   created() {
     this.$store.commit('setBreadcrumb',
-      { path: '/menu', name: 'MENU' }
+      { path: this.$route.path, name: this.title }
     )
     this.getDashboard()
   },
@@ -66,7 +69,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/menu', name: 'MENU' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

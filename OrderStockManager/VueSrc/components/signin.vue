@@ -18,11 +18,14 @@ div
 <script>
 export default {
   props: ['redirect'],
-  metaInfo: {
-    title: 'サインイン',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: 'サインイン',
       signinForm: {
         inputId: '',
         password: ''
@@ -70,7 +73,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/signin', name: 'サインイン' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

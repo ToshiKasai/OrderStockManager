@@ -91,9 +91,18 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  console.log(from)
+  console.log(to)
+  console.log('----------')
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!store.getters.isAuthenticated) {
       next({ path: '/signin', query: { redirect: to.fullPath } })
+      // Vue.notify({ title: 'NG', message: 'ここに遷移は出来ません', type: 'warning' });
+      /*if (from.name === null) {
+        next({ path: '/' })
+      } else {
+        next(false)
+      }*/
     } else {
       next()
     }

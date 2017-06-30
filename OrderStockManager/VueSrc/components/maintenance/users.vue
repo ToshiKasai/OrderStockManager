@@ -23,11 +23,14 @@ div
 
 <script>
 export default {
-  metaInfo: {
-    title: 'ユーザー管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: 'ユーザー管理',
       users: [],
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
@@ -73,7 +76,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users', name: 'ユーザー' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

@@ -4,18 +4,25 @@ div
   div サインインを行い、システムの利用を開始してください。
   div アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。
   hr
-  div IE11は対応は考慮しておりますが、全画面での動作は保証できません。
-  div また、IE9以降であれば動作はするとは思われますが、IE11以外は動作保証外となります。
+  div 開発環境はGoogle Chromeが中心となります。
+  div IE11は対応は考慮しておりますが、全機能の動作は確認しておりません。
 </template>
 
 <script>
 export default {
-  metaInfo: {
-    title: 'Welcome'
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data() {
+    return {
+      title: 'Welcome'
+    }
   },
   created() {
     this.$store.commit('setBreadcrumb',
-      { path: '/', name: 'WELCOME' }
+      { path: this.$route.path, name: this.title }
     )
     if (this.$store.getters.isAuthenticated) {
       this.$router.replace('/menu')
@@ -24,7 +31,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/', name: 'WELCOME' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

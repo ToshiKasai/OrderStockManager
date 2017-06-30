@@ -57726,13 +57726,20 @@ var App = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm.
   }
 };
 
-var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")]),_c('hr'),_c('div',[_vm._v("IE11は対応は考慮しておりますが、全画面での動作は保証できません。")]),_c('div',[_vm._v("また、IE9以降であれば動作はするとは思われますが、IE11以外は動作保証外となります。")])])}],_scopeId: 'data-v-c8f7c99c',
-  metaInfo: {
-    title: 'Welcome'
+var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('h4',[_vm._v("ようこそ")]),_c('div',[_vm._v("サインインを行い、システムの利用を開始してください。")]),_c('div',[_vm._v("アカウントがない場合は、ワークフローで業務アカウント申請を行ってください。")]),_c('hr'),_c('div',[_vm._v("開発環境はGoogle Chromeが中心となります。")]),_c('div',[_vm._v("IE11は対応は考慮しておりますが、全機能の動作は確認しておりません。")])])}],_scopeId: 'data-v-c8f7c99c',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: 'Welcome'
+    }
   },
   created: function created() {
     this.$store.commit('setBreadcrumb',
-      { path: '/', name: 'WELCOME' }
+      { path: this.$route.path, name: this.title }
     );
     if (this.$store.getters.isAuthenticated) {
       this.$router.replace('/menu');
@@ -57741,7 +57748,7 @@ var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/', name: 'WELCOME' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
@@ -57749,11 +57756,14 @@ var Wellcome = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
 
 var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{ref:"signinForm",attrs:{"model":_vm.signinForm,"rules":_vm.checkRules,"onSubmit":"return false;"}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"inputId"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.signinForm.inputId),callback:function ($$v) {_vm.signinForm.inputId=$$v;},expression:"signinForm.inputId"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"password"}},[_c('el-input',{attrs:{"type":"password"},model:{value:(_vm.signinForm.password),callback:function ($$v) {_vm.signinForm.password=$$v;},expression:"signinForm.password"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary","native-type":"submit"},on:{"click":function($event){_vm.submitForm('signinForm');}}},[_vm._v("サインイン")]),_c('el-button',{on:{"click":function($event){_vm.resetForm('signinForm');}}},[_vm._v("リセット")])],1)],1),_c('el-dialog',{attrs:{"title":"サインインに失敗しました","visible":_vm.dialogVisible,"size":"tiny"},on:{"update:visible":function($event){_vm.dialogVisible=$event;}}},[_c('span',[_vm._v("サインインに失敗しました")]),_c('div',{domProps:{"textContent":_vm._s(_vm.dialogMessage)}}),_c('span',{staticClass:"dialog-footer",slot:"footer"},[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.dialogVisible = false;}}},[_vm._v("OK")])],1)])],1)},staticRenderFns: [],_scopeId: 'data-v-ed7fec10',
   props: ['redirect'],
-  metaInfo: {
-    title: 'サインイン',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: 'サインイン',
       signinForm: {
         inputId: '',
         password: ''
@@ -57803,18 +57813,21 @@ var SignIn = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/signin', name: 'サインイン' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
 var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("在庫・販売状況確認")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("予算データアップロード")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("パスワード変更")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("メールアドレス変更")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"},on:{"click":_vm.goMainte}},[_vm._v("管理機能")])],1),_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("サインインログ表示")])],1)],1),_c('el-row',{attrs:{"gutter":20}},[_c('el-col',{attrs:{"span":8}},[_c('el-button',{staticStyle:{"width":"100%"},attrs:{"size":"large"}},[_vm._v("アクションログ表示")])],1)],1),_c('hr'),_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.dashboards,"element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"startDateTime","label":"掲載日","width":"180"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.startDateTime)))])]}}])}),_c('el-table-column',{attrs:{"prop":"message","label":"メッセージ"}})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-7d1d8e6e',
-  metaInfo: {
-    title: 'メニュー',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function () {
     return {
+      title: 'メニュー',
       loading: false,
       dashboards: []
     }
@@ -57841,7 +57854,7 @@ var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm
   },
   created: function created() {
     this.$store.commit('setBreadcrumb',
-      { path: '/menu', name: 'MENU' }
+      { path: this.$route.path, name: this.title }
     );
     this.getDashboard();
   },
@@ -57851,15 +57864,22 @@ var Menu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/menu', name: 'MENU' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
 var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-row',[_c('el-col',{attrs:{"xs":8,"sm":6,"md":4,"lg":3}},[_c('el-menu',{attrs:{"mode":"vertical","theme":"dark","router":true}},[_c('el-menu-item',{attrs:{"index":"/mainte"}},[_vm._v("管理メニュー")]),_c('el-menu-item',{attrs:{"index":"/mainte/users"}},[_vm._v("ユーザーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/roles"}},[_vm._v("ロールメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/makers"}},[_vm._v("メーカーメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/products"}},[_vm._v("商品メンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/groups"}},[_vm._v("グループメンテ")]),_c('el-menu-item',{attrs:{"index":"/mainte/dashboards"}},[_vm._v("ダッシュボードメンテ")])],1)],1),_c('el-col',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.nowLoading),expression:"nowLoading"}],attrs:{"xs":16,"sm":18,"md":20,"lg":21,"element-loading-text":_vm.loadingMessage}},[_c('router-view')],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-4155bba6',
-  metaInfo: {
-    title: '管理機能',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function data() {
+    return {
+      title: '管理機能'
+    }
   },
   computed: {
     nowLoading: function () {
@@ -57872,24 +57892,34 @@ var Maintenance = {render: function(){var _vm=this;var _h=_vm.$createElement;var
 };
 
 var MainteMenu = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)},staticRenderFns: [function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',[_vm._v("管理機能へようこそ")]),_c('div',[_vm._v("ログイン者権限によりますが、左記メニューより機能を選択してください。")])])}],_scopeId: 'data-v-5364a108',
-  metaInfo: {
-    title: '管理機能',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data: function () {
+    return {
+      title: '管理機能'
+    }
   },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte', name: '管理画面' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
 var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-button',{on:{"click":_vm.useradd}},[_vm._v("新規登録")]),_c('el-table',{attrs:{"data":_vm.users,"stripe":"","height":"480"}},[_c('el-table-column',{attrs:{"prop":"userName","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"ユーザー名","min-width":"200"}}),_c('el-table-column',{attrs:{"prop":"expiration","label":"有効期限","sortable":"","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("converetDateFormat")(scope.row.expiration)))])]}}])}),_c('el-table-column',{attrs:{"prop":"email","label":"メールアドレス","min-width":"300"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("boolMessage")(scope.row.enabled,'許可', '不可')))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"100"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])}),_c('el-table-column',{attrs:{"label":"機能","fixed":"left","width":"200"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.edit(scope.row.id);}}},[_vm._v("edit")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.role(scope.row.id);}}},[_vm._v("role")]),_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.maker(scope.row.id);}}},[_vm._v("maker")])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-760b4f99',
-  metaInfo: {
-    title: 'ユーザー管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: 'ユーザー管理',
       users: [],
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不可', value: 'false' }],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
@@ -57937,20 +57967,22 @@ var Users = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users', name: 'ユーザー' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
-var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{directives:[{name:"loading",rawName:"v-loading.body",value:(_vm.loading),expression:"loading",modifiers:{"body":true}}],ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules,"element-loading-text":"処理中"}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',{attrs:{"label":"メール認証"}},[_c('el-switch',{attrs:{"on-text":"済","off-text":"未"},model:{value:(_vm.user.emailConfirmed),callback:function ($$v) {_vm.user.emailConfirmed=$$v;},expression:"user.emailConfirmed"}})],1),_c('el-form-item',{attrs:{"label":"有効期限"}},[_vm._v(_vm._s(_vm._f("converetDateFormat")(_vm.user.expiration))),_c('i',{staticClass:"material-icons",staticStyle:{"font-size":"13px","margin-left":"8px","margin-right":"8px"}},[_vm._v("")]),_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.newExpiration),callback:function ($$v) {_vm.user.newExpiration=$$v;},expression:"user.newExpiration"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト"}},[_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.lockoutEndData),callback:function ($$v) {_vm.user.lockoutEndData=$$v;},expression:"user.lockoutEndData"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト対象"}},[_c('el-switch',{model:{value:(_vm.user.lockoutEnabled),callback:function ($$v) {_vm.user.lockoutEnabled=$$v;},expression:"user.lockoutEnabled"}})],1),_c('el-form-item',{attrs:{"label":"連続入力ミス"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.accessFailedCount),callback:function ($$v) {_vm.user.accessFailedCount=$$v;},expression:"user.accessFailedCount"}})],1),_c('el-form-item',{attrs:{"label":"パスワードスキップ"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.passwordSkipCnt),callback:function ($$v) {_vm.user.passwordSkipCnt=$$v;},expression:"user.passwordSkipCnt"}})],1),_c('el-form-item',{attrs:{"label":"新パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"使用許可"}},[_c('el-switch',{attrs:{"on-text":"許可","off-text":""},model:{value:(_vm.user.enabled),callback:function ($$v) {_vm.user.enabled=$$v;},expression:"user.enabled"}})],1),_c('el-form-item',{attrs:{"label":"削除"}},[_c('el-switch',{attrs:{"on-text":"削除","off-text":""},model:{value:(_vm.user.deleted),callback:function ($$v) {_vm.user.deleted=$$v;},expression:"user.deleted"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-522f9ad4',
+var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',{attrs:{"label":"メール認証"}},[_c('el-switch',{attrs:{"on-text":"済","off-text":"未"},model:{value:(_vm.user.emailConfirmed),callback:function ($$v) {_vm.user.emailConfirmed=$$v;},expression:"user.emailConfirmed"}})],1),_c('el-form-item',{attrs:{"label":"有効期限"}},[_vm._v(_vm._s(_vm._f("converetDateFormat")(_vm.user.expiration))),_c('i',{staticClass:"material-icons",staticStyle:{"font-size":"13px","margin-left":"8px","margin-right":"8px"}},[_vm._v("")]),_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.newExpiration),callback:function ($$v) {_vm.user.newExpiration=$$v;},expression:"user.newExpiration"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト"}},[_c('el-date-picker',{attrs:{"type":"date"},model:{value:(_vm.user.lockoutEndData),callback:function ($$v) {_vm.user.lockoutEndData=$$v;},expression:"user.lockoutEndData"}})],1),_c('el-form-item',{attrs:{"label":"ロックアウト対象"}},[_c('el-switch',{model:{value:(_vm.user.lockoutEnabled),callback:function ($$v) {_vm.user.lockoutEnabled=$$v;},expression:"user.lockoutEnabled"}})],1),_c('el-form-item',{attrs:{"label":"連続入力ミス"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.accessFailedCount),callback:function ($$v) {_vm.user.accessFailedCount=$$v;},expression:"user.accessFailedCount"}})],1),_c('el-form-item',{attrs:{"label":"パスワードスキップ"}},[_c('el-input-number',{attrs:{"min":0,"max":10},model:{value:(_vm.user.passwordSkipCnt),callback:function ($$v) {_vm.user.passwordSkipCnt=$$v;},expression:"user.passwordSkipCnt"}})],1),_c('el-form-item',{attrs:{"label":"新パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"使用許可"}},[_c('el-switch',{attrs:{"on-text":"許可","off-text":""},model:{value:(_vm.user.enabled),callback:function ($$v) {_vm.user.enabled=$$v;},expression:"user.enabled"}})],1),_c('el-form-item',{attrs:{"label":"削除"}},[_c('el-switch',{attrs:{"on-text":"削除","off-text":""},model:{value:(_vm.user.deleted),callback:function ($$v) {_vm.user.deleted=$$v;},expression:"user.deleted"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-522f9ad4',
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザー編集',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
-      loading: false,
+      title: 'ユーザー編集',
       user: {},
       checkRules: {
         userName: [
@@ -57971,35 +58003,30 @@ var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }
   },
-  computed: {
-  },
   methods: {
     getUser: function getUser() {
       var this$1 = this;
 
-      this.loading = true;
-      this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
+      return this.$store.dispatch('maintenance/getUser', this.id).then(function (response) {
         var item = response.data;
         this$1.user = this$1.minotaka.makeSingleType(item, "object");
-        this$1.loading = false;
       }).catch(function (error) {
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
-      });
+      })
     },
     submitForm: function submitForm(formName) {
       var this$1 = this;
 
       this.$refs[formName].validate(function (valid) {
         if (valid) {
-          this$1.loading = true;
+          this$1.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中');
           this$1.$store.dispatch('maintenance/setUser', this$1.user).then(function (response) {
             this$1.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' });
-            this$1.loading = false;
+            this$1.$store.dispatch('endLoading');
             this$1.$router.go(-1);
           }).catch(function (error) {
+            this$1.$store.dispatch('endLoading');
             this$1.$notify.error({ title: 'Error', message: error.message });
-            this$1.loading = false;
           });
         } else {
           return false
@@ -58010,28 +58037,28 @@ var UserEdit = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
       this.$router.go(-1);
     }
   },
-  created: function created() {
-    // this.getUser()
-  },
-  watch: {
-    // '$route': 'getUser'
-  },
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中');
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/edit', name: 'ユーザー編集' },
-        vm.getUser()
+        { path: vm.$route.path, name: vm.title }
       );
+      vm.getUser().then(function () {
+        vm.$store.dispatch('endLoading');
+      });
     });
   }
 };
 
 var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-form',{ref:"userForm",attrs:{"model":_vm.user,"label-position":"right","label-width":"150px","rules":_vm.checkRules}},[_c('el-form-item',{attrs:{"label":"サインインＩＤ","prop":"userName"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.userName),callback:function ($$v) {_vm.user.userName=$$v;},expression:"user.userName"}})],1),_c('el-form-item',{attrs:{"label":"ユーザー名","prop":"name"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.name),callback:function ($$v) {_vm.user.name=$$v;},expression:"user.name"}})],1),_c('el-form-item',{attrs:{"label":"パスワード","prop":"newPassword"}},[_c('el-input',{attrs:{"type":"text"},model:{value:(_vm.user.newPassword),callback:function ($$v) {_vm.user.newPassword=$$v;},expression:"user.newPassword"}})],1),_c('el-form-item',{attrs:{"label":"メールアドレス","prop":"email"}},[_c('el-input',{attrs:{"type":"email"},model:{value:(_vm.user.email),callback:function ($$v) {_vm.user.email=$$v;},expression:"user.email"}})],1),_c('el-form-item',[_c('el-button',{attrs:{"type":"primary"},on:{"click":function($event){_vm.submitForm('userForm');}}},[_vm._v("登録")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)],1)],1)},staticRenderFns: [],_scopeId: 'data-v-79649572',
-  metaInfo: {
-    title: 'ユーザー登録',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: 'ユーザー登録',
       user: {
         id: 0,
         userName: null,
@@ -58094,7 +58121,7 @@ var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/add', name: 'ユーザー登録' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
@@ -58102,12 +58129,14 @@ var UserAdd = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=
 
 var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-transfer',{attrs:{"data":_vm.roleList,"button-texts":['剥奪', '付与'],"titles":['未付与権限', '付与済み'],"props":{key: 'name', label: 'name'}},model:{value:(_vm.roles),callback:function ($$v) {_vm.roles=$$v;},expression:"roles"}}),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-7aaff1e3',
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザー権限',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
-      loading: false,
+      title: 'ユーザー権限',
       user: {},
       roles: [],
       roleList: []
@@ -58169,7 +58198,7 @@ var UserRoles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _
         });
       });
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/roles', name: 'ユーザー権限' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
@@ -61253,11 +61282,14 @@ var linq = createCommonjsModule(function (module) {
 
 var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"basemargin"},[_c('el-row',[_c('el-col',{attrs:{"span":2}},[_vm._v("編集対象")]),_c('el-col',{attrs:{"span":22},domProps:{"textContent":_vm._s(_vm.user.name)}})],1),_c('el-row',[_c('el-col',{attrs:{"span":12}},[_c('el-table',{staticStyle:{"width":"100%"},attrs:{"data":_vm.makers,"height":"400"}},[_c('el-table-column',{attrs:{"label":"担当メーカー"}},[_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1),_c('el-col',{attrs:{"span":12}},[_c('el-table',{ref:"multipleTable",staticStyle:{"width":"100%"},attrs:{"data":_vm.makerList,"height":"400"},on:{"selection-change":_vm.selectChange}},[_c('el-table-column',{attrs:{"label":"メーカー一覧"}},[_c('el-table-column',{attrs:{"type":"selection","width":"55"}}),_c('el-table-column',{attrs:{"property":"code","label":"コード","width":"120"}}),_c('el-table-column',{attrs:{"property":"name","label":"メーカー名"}})],1)],1)],1)],1),_c('el-button',{attrs:{"type":"primary"},on:{"click":_vm.submitForm}},[_vm._v("変更")]),_c('el-button',{on:{"click":_vm.cancel}},[_vm._v("キャンセル")])],1)},staticRenderFns: [],_scopeId: 'data-v-d792c30e',
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザーメーカー',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: 'ユーザーメーカー',
       user: {},
       makers: [],
       myMakers: [],
@@ -61331,24 +61363,24 @@ var UserMakers = {render: function(){var _vm=this;var _h=_vm.$createElement;var 
         });
       });
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/makers', name: 'ユーザーメーカー' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
-var Roles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-table',{directives:[{name:"loading",rawName:"v-loading",value:(_vm.loading),expression:"loading"}],attrs:{"data":_vm.roles,"element-loading-text":"Loading..."}},[_c('el-table-column',{attrs:{"prop":"name","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"displayName","label":"説明"}}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.deleted?'削除済み':'－')}})]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-75d5edce',
-  metaInfo: {
-    title: 'ロール管理',
+var Roles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-table',{attrs:{"data":_vm.roles}},[_c('el-table-column',{attrs:{"prop":"name","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"displayName","label":"説明"}}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.disabledFilters,"filter-method":_vm.filterDisabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.deleted?'削除済み':'－')}})]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-75d5edce',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
-      loading: false,
+      title: 'ロール管理',
       roles: [],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
     }
-  },
-  computed: {
   },
   methods: {
     filterDisabled: function filterDisabled(value, row) {
@@ -61357,14 +61389,14 @@ var Roles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
     getRoles: function getRoles() {
       var this$1 = this;
 
-      this.loading = true;
+      this.$store.dispatch('nowLoadingMainte', 'ロール情報取得中');
       this.$store.dispatch('maintenance/getRoles').then(function (response) {
         var items = response.data;
         this$1.roles = this$1.minotaka.makeArray(items);
-        this$1.loading = false;
+        this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
+        this$1.$store.dispatch('endLoading');
         this$1.$notify.error({ title: 'Error', message: error.message });
-        this$1.loading = false;
       });
     }
   },
@@ -61377,18 +61409,21 @@ var Roles = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_v
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/roles', name: 'ロール' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
 var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-table',{attrs:{"data":_vm.makers,"height":"480"}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"150"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用許可","filters":_vm.enabledFilters,"filter-method":_vm.filterEnabled,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"label":"機能","width":"150"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('el-button',{attrs:{"size":"small"},on:{"click":function($event){_vm.changeMaker(scope.row);}}},[_vm._v(_vm._s(scope.row.enabled ? '不許可':'許可'))])]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","filters":_vm.deletedFilters,"filter-method":_vm.filterDeleted,"filter-placement":"bottom-end","filter-multiple":false,"width":"120"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-045fc024',
-  metaInfo: {
-    title: 'メーカー管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: 'メーカー管理',
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不許可', value: 'false' }],
       deletedFilters: [{ text: '削除済み', value: 'true' }, { text: '未削除', value: 'false' }],
       makers: []
@@ -61412,8 +61447,8 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
         this$1.getMaker();
         this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
         this$1.$store.dispatch('endLoading');
+        this$1.$notify.error({ title: 'Error', message: error.message });
       });
     },
     getMaker: function getMaker() {
@@ -61425,8 +61460,8 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
         this$1.makers = linq.from(items).orderBy(function (x) { return x.code; }).toArray();
         this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
         this$1.$store.dispatch('endLoading');
+        this$1.$notify.error({ title: 'Error', message: error.message });
       });
     }
   },
@@ -61439,18 +61474,21 @@ var Makers = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/makers', name: 'メーカー' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
 };
 
 var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('data-tables',{attrs:{"data":_vm.products,"border":false,"search-def":_vm.searchDefine,"pagination-def":_vm.pageDefine,"has-action-col":false,"checkbox-filter-def":_vm.filterDefine}},[_c('el-table-column',{attrs:{"prop":"code","label":"コード","sortable":"","width":"110"}}),_c('el-table-column',{attrs:{"prop":"name","label":"名称"}}),_c('el-table-column',{attrs:{"prop":"makerCode","label":"メーカー","sortable":""},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(scope.row.makerCode)+" - "+_vm._s(scope.row.makerName))])]}}])}),_c('el-table-column',{attrs:{"prop":"quantity","label":"入り数","width":"90","align":"right"}}),_c('el-table-column',{attrs:{"prop":"isSoldWeight","label":"計量","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.isSoldWeight?'計量':'－')}})]}}])}),_c('el-table-column',{attrs:{"prop":"enabled","label":"使用","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',{domProps:{"textContent":_vm._s(scope.row.enabled?'許可':'不許可')}})]}}])}),_c('el-table-column',{attrs:{"prop":"deleted","label":"削除","width":"90"},scopedSlots:_vm._u([{key:"default",fn:function(scope){return [_c('span',[_vm._v(_vm._s(_vm._f("deletedMessage")(scope.row.deleted)))])]}}])})],1)],1)},staticRenderFns: [],_scopeId: 'data-v-61d6d063',
-  metaInfo: {
-    title: '商品管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data: function data() {
     return {
+      title: '商品管理',
       searchDefine: { props: ['code', 'name'], placeholder: 'コードと名称で絞り込む' },
       pageDefine: { pageSize: 10, pageSizes: [10, 15, 30, 50] },
       filterDefine: {
@@ -61463,8 +61501,6 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
       },
       products: []
     }
-  },
-  computed: {
   },
   methods: {
     myFilters: function myFilters(row, props) {
@@ -61482,15 +61518,6 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
       if (filter[2] !== null && row.isSoldWeight.toString() !== filter[2]) { ret[2] = false; }
       return ret[0] && ret[1] && ret[2]
     },
-    filterWeight: function filterWeight(value, row) {
-      return row.isSoldWeight.toString() === value
-    },
-    filterEnabled: function filterEnabled(value, row) {
-      return row.enabled.toString() === value
-    },
-    filterDeleted: function filterDeleted(value, row) {
-      return row.deleted.toString() === value
-    },
     getProducts: function getProducts() {
       var this$1 = this;
 
@@ -61500,8 +61527,8 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
         this$1.products = linq.from(items).orderBy(function (x) { return x.code; }).toArray();
         this$1.$store.dispatch('endLoading');
       }).catch(function (error) {
-        this$1.$notify.error({ title: 'Error', message: error.message });
         this$1.$store.dispatch('endLoading');
+        this$1.$notify.error({ title: 'Error', message: error.message });
       });
     }
   },
@@ -61514,7 +61541,7 @@ var Products = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c
   beforeRouteEnter: function beforeRouteEnter(to, from, next) {
     next(function (vm) {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/products', name: '商品管理' }
+        { path: vm.$route.path, name: vm.title }
       );
     });
   }
@@ -66678,9 +66705,18 @@ var router = new VueRouter({
 });
 
 router.beforeEach(function (to, from, next) {
+  console.log(from);
+  console.log(to);
+  console.log('----------');
   if (to.matched.some(function (record) { return record.meta.requiresAuth; })) {
     if (!store$1.getters.isAuthenticated) {
-      next({ path: '/signin', query: { redirect: to.fullPath } });
+      // next({ path: '/signin', query: { redirect: to.fullPath } })
+      // Vue.notify({ title: 'NG', message: 'ここに遷移は出来ません', type: 'warning' });
+      if (from.name === null) {
+        next({ path: '/' });
+      } else {
+        next(false);
+      }
     } else {
       next();
     }

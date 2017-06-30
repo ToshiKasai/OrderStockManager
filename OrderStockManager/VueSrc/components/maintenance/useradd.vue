@@ -16,11 +16,14 @@ div.basemargin
 
 <script>
 export default {
-  metaInfo: {
-    title: 'ユーザー登録',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: 'ユーザー登録',
       user: {
         id: 0,
         userName: null,
@@ -81,7 +84,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/add', name: 'ユーザー登録' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

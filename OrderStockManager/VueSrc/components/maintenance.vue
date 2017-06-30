@@ -16,8 +16,15 @@ div
 
 <script>
 export default {
-  metaInfo: {
-    title: '管理機能',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
+  },
+  data() {
+    return {
+      title: '管理機能'
+    }
   },
   computed: {
     nowLoading: function () {

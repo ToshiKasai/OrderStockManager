@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-  el-table(:data="roles" v-loading="loading" element-loading-text="Loading...")
+  el-table(:data="roles")
     el-table-column(prop="name" label="コード" sortable width="150")
     el-table-column(prop="displayName" label="説明")
     el-table-column(prop="deleted" label="削除" :filters="disabledFilters" :filter-method="filterDisabled" filter-placement="bottom-end" :filter-multiple="false" width="120")
@@ -10,31 +10,31 @@ div
 
 <script>
 export default {
-  metaInfo: {
-    title: 'ロール管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
-      loading: false,
+      title: 'ロール管理',
       roles: [],
       disabledFilters: [{ text: '削除', value: 'true' }, { text: '未削除', value: 'false' }]
     }
-  },
-  computed: {
   },
   methods: {
     filterDisabled(value, row) {
       return row.deleted.toString() === value
     },
     getRoles() {
-      this.loading = true
+      this.$store.dispatch('nowLoadingMainte', 'ロール情報取得中')
       this.$store.dispatch('maintenance/getRoles').then((response) => {
         var items = response.data
         this.roles = this.minotaka.makeArray(items)
-        this.loading = false
+        this.$store.dispatch('endLoading')
       }).catch((error) => {
+        this.$store.dispatch('endLoading')
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     }
   },
@@ -47,7 +47,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/roles', name: 'ロール' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

@@ -17,11 +17,14 @@ div
 <script>
 import Enumerable from 'linq';
 export default {
-  metaInfo: {
-    title: 'メーカー管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: 'メーカー管理',
       enabledFilters: [{ text: '許可', value: 'true' }, { text: '不許可', value: 'false' }],
       deletedFilters: [{ text: '削除済み', value: 'true' }, { text: '未削除', value: 'false' }],
       makers: []
@@ -43,8 +46,8 @@ export default {
         this.getMaker()
         this.$store.dispatch('endLoading')
       }).catch((error) => {
-        this.$notify.error({ title: 'Error', message: error.message })
         this.$store.dispatch('endLoading')
+        this.$notify.error({ title: 'Error', message: error.message })
       })
     },
     getMaker() {
@@ -54,8 +57,8 @@ export default {
         this.makers = Enumerable.from(items).orderBy(x => x.code).toArray()
         this.$store.dispatch('endLoading')
       }).catch((error) => {
-        this.$notify.error({ title: 'Error', message: error.message })
         this.$store.dispatch('endLoading')
+        this.$notify.error({ title: 'Error', message: error.message })
       })
     }
   },
@@ -68,7 +71,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/makers', name: 'メーカー' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

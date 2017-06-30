@@ -24,11 +24,14 @@ div
 <script>
 import Enumerable from 'linq';
 export default {
-  metaInfo: {
-    title: '商品管理',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: '商品管理',
       searchDefine: { props: ['code', 'name'], placeholder: 'コードと名称で絞り込む' },
       pageDefine: { pageSize: 10, pageSizes: [10, 15, 30, 50] },
       filterDefine: {
@@ -41,8 +44,6 @@ export default {
       },
       products: []
     }
-  },
-  computed: {
   },
   methods: {
     myFilters(row, props) {
@@ -60,15 +61,6 @@ export default {
       if (filter[2] !== null && row.isSoldWeight.toString() !== filter[2]) { ret[2] = false }
       return ret[0] && ret[1] && ret[2]
     },
-    filterWeight(value, row) {
-      return row.isSoldWeight.toString() === value
-    },
-    filterEnabled(value, row) {
-      return row.enabled.toString() === value
-    },
-    filterDeleted(value, row) {
-      return row.deleted.toString() === value
-    },
     getProducts() {
       this.$store.dispatch('nowLoadingMainte', '商品情報処理中')
       this.$store.dispatch('maintenance/getProducts').then((response) => {
@@ -76,8 +68,8 @@ export default {
         this.products = Enumerable.from(items).orderBy(x => x.code).toArray()
         this.$store.dispatch('endLoading')
       }).catch((error) => {
-        this.$notify.error({ title: 'Error', message: error.message })
         this.$store.dispatch('endLoading')
+        this.$notify.error({ title: 'Error', message: error.message })
       })
     }
   },
@@ -90,7 +82,7 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/products', name: '商品管理' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }

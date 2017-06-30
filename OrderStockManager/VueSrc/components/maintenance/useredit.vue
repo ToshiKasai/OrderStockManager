@@ -1,6 +1,6 @@
 <template lang="pug">
 div.basemargin
-  el-form(:model="user" label-position="right" label-width="150px" :rules="checkRules" ref="userForm" v-loading.body="loading" element-loading-text="処理中")
+  el-form(:model="user" label-position="right" label-width="150px" :rules="checkRules" ref="userForm")
     el-form-item(label="サインインＩＤ" prop="userName")
       el-input(type="text" v-model="user.userName")
     el-form-item(label="ユーザー名" prop="name")
@@ -35,12 +35,14 @@ div.basemargin
 <script>
 export default {
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザー編集',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
-      loading: false,
+      title: 'ユーザー編集',
       user: {},
       checkRules: {
         userName: [
@@ -61,31 +63,26 @@ export default {
       }
     }
   },
-  computed: {
-  },
   methods: {
     getUser() {
-      this.loading = true
-      this.$store.dispatch('maintenance/getUser', this.id).then((response) => {
+      return this.$store.dispatch('maintenance/getUser', this.id).then((response) => {
         var item = response.data
         this.user = this.minotaka.makeSingleType(item, "object")
-        this.loading = false
       }).catch((error) => {
         this.$notify.error({ title: 'Error', message: error.message })
-        this.loading = false
       })
     },
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.loading = true
+          this.$store.dispatch('nowLoadingMainte', 'ユーザー情報更新中')
           this.$store.dispatch('maintenance/setUser', this.user).then((response) => {
             this.$notify({ title: '変更完了', message: 'ユーザー情報の更新を行いました' })
-            this.loading = false
+            this.$store.dispatch('endLoading')
             this.$router.go(-1)
           }).catch((error) => {
+            this.$store.dispatch('endLoading')
             this.$notify.error({ title: 'Error', message: error.message })
-            this.loading = false
           })
         } else {
           return false
@@ -96,18 +93,15 @@ export default {
       this.$router.go(-1)
     }
   },
-  created() {
-    // this.getUser()
-  },
-  watch: {
-    // '$route': 'getUser'
-  },
   beforeRouteEnter(to, from, next) {
     next(vm => {
+      vm.$store.dispatch('nowLoadingMainte', 'ユーザー情報処理中')
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/edit', name: 'ユーザー編集' },
-        vm.getUser()
+        { path: vm.$route.path, name: vm.title }
       )
+      vm.getUser().then(() => {
+        vm.$store.dispatch('endLoading')
+      })
     })
   }
 }

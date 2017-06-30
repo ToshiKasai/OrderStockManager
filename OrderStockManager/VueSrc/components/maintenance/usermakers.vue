@@ -24,11 +24,14 @@ import Enumerable from 'linq';
 
 export default {
   props: ['id'],
-  metaInfo: {
-    title: 'ユーザーメーカー',
+  metaInfo: function () {
+    return {
+      title: this.title
+    }
   },
   data() {
     return {
+      title: 'ユーザーメーカー',
       user: {},
       makers: [],
       myMakers: [],
@@ -94,7 +97,7 @@ export default {
         })
       })
       vm.$store.commit('changeBreadcrumb',
-        { path: '/mainte/users/' + vm.id + '/makers', name: 'ユーザーメーカー' }
+        { path: vm.$route.path, name: vm.title }
       )
     })
   }
