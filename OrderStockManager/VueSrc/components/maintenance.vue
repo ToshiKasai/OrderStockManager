@@ -2,7 +2,7 @@
 div
   el-row
     el-col(:xs="8" :sm="6" :md="4" :lg="3")
-      el-menu(mode="vertical" theme="dark" :router="true")
+      el-menu(mode="vertical" theme="dark" :router="true" :default-active="activeIndex")
         el-menu-item(index="/mainte") 管理メニュー
         el-menu-item(index="/mainte/users") ユーザーメンテ
         el-menu-item(index="/mainte/roles") ロールメンテ
@@ -32,6 +32,9 @@ export default {
     },
     loadingMessage: function () {
       return this.$store.getters.loadingMessage
+    },
+    activeIndex() {
+      return this.$store.getters.activeIndex
     }
   }
 }

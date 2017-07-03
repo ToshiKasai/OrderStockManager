@@ -1,4 +1,7 @@
 ﻿export const getters = {
+  activeIndex(state) {
+    return state.activeIndex
+  },
   getBreadlist(state, getters, rootState) {
     return state.breadlist
   },

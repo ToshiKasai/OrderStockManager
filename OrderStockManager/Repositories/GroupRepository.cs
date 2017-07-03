@@ -264,7 +264,7 @@ namespace OrderStockManager.Repositories
                 }
                 if (parameter.MakerId.HasValue)
                 {
-                    query = query.Where(x => x.MakerModelId == parameter.MakerId.GetValueOrDefault());
+                    query = query.Where(x => x.MakerModelId == (int)parameter.MakerId);
                 }
 
                 if (pageControl)
@@ -273,11 +273,11 @@ namespace OrderStockManager.Repositories
                     {
                         if (parameter.Page.HasValue && parameter.Page.GetValueOrDefault() >= 0)
                         {
-                            query = query.Skip(parameter.Limit.GetValueOrDefault() * parameter.Page.GetValueOrDefault()).Take(parameter.Limit.GetValueOrDefault());
+                            query = query.Skip((int)parameter.Limit * (int)parameter.Page).Take((int)parameter.Limit);
                         }
                         else
                         {
-                            query = query.Take(parameter.Limit.GetValueOrDefault());
+                            query = query.Take((int)parameter.Limit);
                         }
                     }
                 }

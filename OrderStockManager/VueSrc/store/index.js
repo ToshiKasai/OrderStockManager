@@ -28,7 +28,8 @@ export default new Vuex.Store({
     fullLoadingShow: false,
     loadingShow: false,
     mainteLoadingShow: false,
-    loadingMessage: null
+    loadingMessage: null,
+    activeIndex: ""
   },
   plugins: [
     createPersistedState({ storage: window.sessionStorage })

@@ -31,8 +31,8 @@ namespace OrderStockManager.Controllers
             try
             {
                 var result = repository.GetGroupsForInterface(param);
-                if (result == null)
-                    return NotFound();
+                //if (result == null)
+                //    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -160,11 +160,10 @@ namespace OrderStockManager.Controllers
 
                 param.GroupId = id;
                 var result = productRepository.GetProductsForInterface(param);
-                if (result == null)
-                {
-                    return NotFound();
-                }
-
+                //if (result == null)
+                //{
+                //    return NotFound();
+                //}
                 return Ok(result);
             }
             catch (Exception ex)

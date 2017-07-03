@@ -123,10 +123,10 @@ namespace OrderStockManager.Controllers
         public IHttpActionResult GetSalesTrend(int id, [FromUri]CustomParameterModel param)
         {
             var result = service.GetSalesTrandsForInterface(id, param);
-            if (result == null)
-            {
-                return BadRequest();
-            }
+            //if (result == null)
+            //{
+            //    return BadRequest();
+            //}
             return Ok(result);
         }
 

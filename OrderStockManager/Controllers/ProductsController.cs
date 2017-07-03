@@ -28,8 +28,8 @@ namespace OrderStockManager.Controllers
             try
             {
                 var result = repository.GetProductsForInterface(param);
-                if (result == null)
-                    return NotFound();
+                //if (result == null)
+                //    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)

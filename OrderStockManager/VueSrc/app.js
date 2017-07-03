@@ -14,6 +14,7 @@ import VueLocalStorage from 'vue-ls'
 import Meta from 'vue-meta'
 import VueAxios from 'vue-axios'
 import DataTables from 'vue-data-tables'
+import Vue2Filters from 'vue2-filters'
 // ライブラリ
 import axios from 'axios'
 import moment from 'moment'
@@ -23,6 +24,7 @@ import 'vue2-animate/dist/vue2-animate.min.css'
 import App from './app.vue'
 import routes from './routes'
 import store from './store'
+import EditNumber from './editNumber.vue'
 
 // 設定
 Vue.use(ElementUI, { locale })
@@ -31,6 +33,7 @@ Vue.use(VueLocalStorage, { namespace: 'vuejs__' })
 Vue.use(Meta)
 Vue.use(VueAxios, axios)
 Vue.use(DataTables)
+Vue.use(Vue2Filters)
 Vue.config.performance = false
 
 // moment設定
@@ -86,6 +89,8 @@ Vue.filter('boolMessage', function (value, trueMessage, falseMessage) {
     return falseMessage
   }
 })
+
+Vue.component('editNumber', EditNumber)
 
 // ルーター
 const router = new VueRouter({

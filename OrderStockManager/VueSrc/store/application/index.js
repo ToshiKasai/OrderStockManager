@@ -9,6 +9,7 @@ export default {
   getters: getters,
   state: {
     selectMyMaker: true,
-    selectMaker: null
+    selectMaker: null,
+    selectGroup: null
   }
 }

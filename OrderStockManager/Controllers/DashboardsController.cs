@@ -38,10 +38,10 @@ namespace OrderStockManager.Controllers
                         query = query.Where(x => x.EndDateTime >= DateTime.Now);
                     }
                     var result = query.ToList();
-                    if (result == null || result.Count == 0)
-                    {
-                        return NotFound();
-                    }
+                    //if (result == null || result.Count == 0)
+                    //{
+                    //    return NotFound();
+                    //}
                     return Ok(result);
                 }
             }

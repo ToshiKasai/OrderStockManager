@@ -48,10 +48,10 @@ namespace OrderStockManager.Controllers
                         }
                     }
                     var result = query.ProjectTo<ContainerInterfaceModel>().ToList();
-                    if (result == null || result.Count == 0)
-                    {
-                        return NotFound();
-                    }
+                    //if (result == null || result.Count == 0)
+                    //{
+                    //    return NotFound();
+                    //}
                     return Ok(result);
                 }
             }

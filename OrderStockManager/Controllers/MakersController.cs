@@ -31,8 +31,8 @@ namespace OrderStockManager.Controllers
             try
             {
                 var result = repository.GetMakersForInterface(param);
-                if (result == null)
-                    return NotFound();
+                //if (result == null)
+                //    return NotFound();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -148,8 +148,8 @@ namespace OrderStockManager.Controllers
                 parameter.Deleted = param.Deleted;
                 var result = groupRepository.GetGroupsForInterface(parameter);
 
-                if (result == null || result.Count() == 0)
-                    return NotFound();
+                //if (result == null || result.Count() == 0)
+                //    return NotFound();
 
                 return Ok(result);
             }

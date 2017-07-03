@@ -24,7 +24,7 @@ namespace OrderStockManager.Repositories
             try
             {
                 using (DataContext dbContext = DataContext.Create())
-                using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                // using (DbContextTransaction tx = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
                     IQueryable<ProductModel> query = QueryProductModel(dbContext, parameter, true);
                     var result = query.ProjectTo<ProductInterfaceModel>().ToList();
@@ -156,11 +156,11 @@ namespace OrderStockManager.Repositories
             IQueryable<ProductModel> query = dbContext.ProductModels.OrderBy(x => x.Id);
             if (parameter.GroupId.HasValue)
             {
-                query = dbContext.GroupProductModels.Where(gp => gp.Deleted == false).Where(gp => gp.GroupModelId == parameter.GroupId.GetValueOrDefault()).Select(gp => gp.ProductModel).OrderBy(p => p.Id);
+                query = dbContext.GroupProductModels.Where(gp => gp.Deleted == false).Where(gp => gp.GroupModelId == (int)parameter.GroupId).Select(gp => gp.ProductModel).OrderBy(p => p.Id);
             }
             else if (parameter.MakerId.HasValue)
             {
-                query = dbContext.ProductModels.Where(p => p.MakerModelId == parameter.MakerId.GetValueOrDefault()).OrderBy(p => p.Id);
+                query = dbContext.ProductModels.Where(p => p.MakerModelId == (int)parameter.MakerId).OrderBy(p => p.Id);
             }
             else
             {
@@ -182,11 +182,11 @@ namespace OrderStockManager.Repositories
                 {
                     if (parameter.Page.HasValue && parameter.Page.GetValueOrDefault() >= 0)
                     {
-                        query = query.Skip(parameter.Limit.GetValueOrDefault() * parameter.Page.GetValueOrDefault()).Take(parameter.Limit.GetValueOrDefault());
+                        query = query.Skip((int)parameter.Limit * (int)parameter.Page).Take((int)parameter.Limit);
                     }
                     else
                     {
-                        query = query.Take(parameter.Limit.GetValueOrDefault());
+                        query = query.Take((int)parameter.Limit);
                     }
                 }
             }

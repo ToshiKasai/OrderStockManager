@@ -4,6 +4,8 @@ import SignIn from './components/signin.vue'
 import Menu from './components/mainmenu.vue'
 // ApplicationComponents
 import MakerSelect from './components/application/makerSelect.vue'
+import GroupSelect from './components/application/groupSelect.vue'
+import ProductSelect from './components/application/productSelect.vue'
 // MaintenanceComponents
 import Maintenance from './components/maintenance.vue'
 import MainteMenu from './components/maintenance/maintemenu.vue'
@@ -37,5 +39,7 @@ export default [
     meta: { requiresAuth: true }
   },
   { path: '/makerselect', component: MakerSelect, meta: { requiresAuth: true } },
+  { path: '/groupselect', component: GroupSelect, meta: { requiresAuth: true } },
+  { path: '/salesviews', component: ProductSelect, meta: { requiresAuth: true } },
   { path: '*', redirect: '/' }
 ]

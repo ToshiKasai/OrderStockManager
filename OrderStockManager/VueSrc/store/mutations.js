@@ -41,6 +41,7 @@ export const mutations = {
       newlist.push(state.breadlist[i])
     }
     newlist.push(item)
+    state.activeIndex = item.path
     state.breadlist = newlist
   },
   fullLoadingShow(state, item) {
@@ -54,5 +55,8 @@ export const mutations = {
   },
   loadingMessage(state, item) {
     state.loadingMessage = item
+  },
+  activeIndex(state, item) {
+    state.activeIndex = item
   }
 }

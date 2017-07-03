@@ -20,11 +20,9 @@ export default {
   data() {
     return {
       title: 'メーカー選択',
-      myId: 0,
       makers: [],
       myMakers: [],
-      selectMyMaker: this.$store.getters.selectMyMaker,
-      form: {}
+      selectMyMaker: this.$store.getters.selectMyMaker
     }
   },
   computed: {
@@ -56,6 +54,7 @@ export default {
     },
     makerSelect(row, event, column) {
       this.$store.commit('selectMaker', row)
+      this.$router.push('/groupselect')
     },
     saveToggleMyMaker() {
       this.$store.commit('selectMyMaker', this.selectMyMaker)
