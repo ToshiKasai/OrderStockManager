@@ -62923,7 +62923,7 @@ var GroupSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;var
   }
 };
 
-var ProductSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{attrs:{"label-width":"150px","inline":true}},[_c('el-form-item',{attrs:{"label":"選択メーカー"}},[_vm._v(_vm._s(_vm.selectMaker.code)+" : "+_vm._s(_vm.selectMaker.name))]),_c('el-form-item',{attrs:{"label":"選択グループ"}},[_vm._v(_vm._s(_vm.selectGroup.code)+" : "+_vm._s(_vm.selectGroup.name))]),_c('el-form-item',{attrs:{"label":"年度"}},[_vm._v(_vm._s(_vm.year))])],1),_vm._l((_vm.selectViews),function(data){return _c('el-card',{staticClass:"box-card"},[_c('div',[_vm._v(_vm._s(data.product.code)+" : "+_vm._s(data.product.name))]),_c('div',{staticClass:"subtitle"},[_vm._v("("+_vm._s(data.product.isSoldWeight?'計量品':'ピース品')+"／ケース："+_vm._s(data.product.quantity)+"／パレット："+_vm._s(_vm._f("placeholder")(data.product.paletteQuantity,'未登録'))+"／リードタイム："+_vm._s(_vm._f("placeholder")(data.product.leadTime,'未登録'))+")")]),_c('table',{staticClass:"ptable",attrs:{"border":"0"}},[_c('tr',[_c('th',{attrs:{"colspan":"2"}},[_vm._v("-")]),_vm._l((12),function(o){return _c('th',{staticClass:"datacell"},[_vm._v(_vm._s((o + 8) % 12 + 1)+"月")])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"2"}},[_vm._v("月初"),_c('br'),_vm._v("在庫")]),_c('th',{staticClass:"title-mid"},[_vm._v("予測")]),_vm._l((12),function(o){return _c('td',{staticClass:"datacell"},[_vm._v(_vm._s(o * o))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].zaiko_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"2"}},[_vm._v("発注")]),_c('th',{staticClass:"title-mid"},[_vm._v("予測")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].order_plan,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].order_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"3"}},[_vm._v("入荷")]),_c('th',{staticClass:"title-mid"},[_vm._v("予定")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].invoice_plan,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].invoice_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("残数")]),_vm._l((12),function(o){return _c('td',{class:{'text-danger':data.salesList[o].invoice_zan<0}},[_c('edit-number',{attrs:{"message":data.salesList[o].invoice_zan}})],1)})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"6"}},[_vm._v("販売")]),_c('th',{staticClass:"title-mid"},[_vm._v("前年")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].pre_sales_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("予算")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].sales_plan,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("動向")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].sales_trend,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].sales_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("前年比")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(_vm.percentage(data.salesList[o].sales_actual,data.salesList[o].pre_sales_actual),'',1)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("予実比")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(_vm.percentage(data.salesList[o].sales_actual,data.salesList[o].sales_plan),'',1)))])})],2)])])})],2)},staticRenderFns: [],_scopeId: 'data-v-072ebad9',
+var ProductSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('el-form',{attrs:{"label-width":"150px","inline":true}},[_c('el-form-item',{attrs:{"label":"選択メーカー"}},[_vm._v(_vm._s(_vm.selectMaker.code)+" : "+_vm._s(_vm.selectMaker.name))]),_c('el-form-item',{attrs:{"label":"選択グループ"}},[_vm._v(_vm._s(_vm.selectGroup.code)+" : "+_vm._s(_vm.selectGroup.name))]),_c('el-form-item',{attrs:{"label":"年度"}},[_vm._v(_vm._s(_vm.year))])],1),_vm._l((_vm.selectViews),function(data){return _c('el-card',{staticClass:"box-card",attrs:{"id":'article-' + data.product.code}},[_c('div',[_vm._v(_vm._s(data.product.code)+" : "+_vm._s(data.product.name))]),_c('div',{staticClass:"subtitle"},[_vm._v("("+_vm._s(data.product.isSoldWeight?'計量品':'ピース品')+"／ケース："+_vm._s(data.product.quantity)+"／パレット："+_vm._s(_vm._f("placeholder")(data.product.paletteQuantity,'未登録'))+"／リードタイム："+_vm._s(_vm._f("placeholder")(data.product.leadTime,'未登録'))+")")]),_c('table',{staticClass:"ptable",attrs:{"border":"0"}},[_c('tr',[_c('th',{attrs:{"colspan":"2"}},[_vm._v("-")]),_vm._l((12),function(o){return _c('th',{staticClass:"datacell"},[_vm._v(_vm._s((o + 8) % 12 + 1)+"月")])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"2"}},[_vm._v("月初"),_c('br'),_vm._v("在庫")]),_c('th',{staticClass:"title-mid"},[_vm._v("予測")]),_vm._l((12),function(o){return _c('td',{staticClass:"datacell"},[_vm._v(_vm._s(o * o))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].zaiko_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"2"}},[_vm._v("発注")]),_c('th',{staticClass:"title-mid"},[_vm._v("予定"),_c('i',{staticClass:"el-icon-edit"})]),_vm._l((12),function(o){return _c('td',[_c('edit-number',{attrs:{"editval":data.salesList[o].order_plan,"dispdlag":data.product.isSoldWeight,"results":_vm.recalc},on:{"update:editval":function($event){data.salesList[o].order_plan=$event;}}})],1)})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].order_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":_vm.invoiceFlag?5:3}},[_vm._v("入荷")]),_c('th',{staticClass:"title-mid"},[_vm._v("予定"),_c('i',{staticClass:"el-icon-edit"})]),_vm._l((12),function(o){return _c('td',[_c('edit-number',{attrs:{"editval":data.salesList[o].invoice_plan,"dispdlag":data.product.isSoldWeight,"results":_vm.recalc},on:{"update:editval":function($event){data.salesList[o].invoice_plan=$event;}}})],1)})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].invoice_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid",on:{"click":_vm.toggleInvoice}},[_vm._v("残数"),_c('i',{staticClass:"el-icon-arrow-down",class:{'el-icon-arrow-up':_vm.invoiceFlag}})]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].invoice_zan - data.salesList[o].invoice_adjust,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',{directives:[{name:"show",rawName:"v-show",value:(_vm.invoiceFlag),expression:"invoiceFlag"}],staticClass:"hidden-title"},[_c('th',{staticClass:"title-mid"},[_vm._v("残数")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].invoice_zan,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',{directives:[{name:"show",rawName:"v-show",value:(_vm.invoiceFlag),expression:"invoiceFlag"}],staticClass:"hidden-title"},[_c('th',{staticClass:"title-mid"},[_vm._v("調整"),_c('i',{staticClass:"el-icon-edit"})]),_vm._l((12),function(o){return _c('td',{class:{'text-danger':data.salesList[o].invoice_adjust<0}},[_c('edit-number',{attrs:{"editval":data.salesList[o].invoice_adjust,"dispdlag":data.product.isSoldWeight,"results":_vm.recalc},on:{"update:editval":function($event){data.salesList[o].invoice_adjust=$event;}}})],1)})],2),_c('tr',[_c('th',{staticClass:"title-st",attrs:{"rowspan":"6"}},[_vm._v("販売")]),_c('th',{staticClass:"title-mid"},[_vm._v("前年")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].pre_sales_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("予算"),_c('i',{staticClass:"el-icon-edit"})]),_vm._l((12),function(o){return _c('td',[_c('edit-number',{attrs:{"editval":data.salesList[o].sales_plan,"dispdlag":data.product.isSoldWeight,"results":_vm.recalc},on:{"update:editval":function($event){data.salesList[o].sales_plan=$event;}}})],1)})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("動向")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].sales_trend,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("実績")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(data.salesList[o].sales_actual,'',data.product.isSoldWeight?3:0)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("前年比")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(_vm.percentage(data.salesList[o].sales_actual,data.salesList[o].pre_sales_actual),'',1)))])})],2),_c('tr',[_c('th',{staticClass:"title-mid"},[_vm._v("予実比")]),_vm._l((12),function(o){return _c('td',[_vm._v(_vm._s(_vm._f("currency")(_vm.percentage(data.salesList[o].sales_actual,data.salesList[o].sales_plan),'',1)))])})],2)])])}),_c('div',{attrs:{"id":"floadBtnMenu"},on:{"click":_vm.test}},[_c('i',{staticClass:"material-icons"},[_vm._v("")])]),_c('div',{attrs:{"id":"floatButton"},on:{"click":_vm.scrollTop}},[_c('i',{staticClass:"material-icons"},[_vm._v("")])])],2)},staticRenderFns: [],_scopeId: 'data-v-072ebad9',
   metaInfo: function () {
     return {
       title: this.title
@@ -62936,7 +62936,8 @@ var ProductSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;v
       selectMaker: this.$store.getters.selectMaker,
       selectGroup: this.$store.getters.selectGroup,
       selectViews: [],
-      year: new Date().getFullYear()
+      year: new Date().getFullYear(),
+      invoiceFlag: false
     }
   },
   methods: {
@@ -62967,6 +62968,74 @@ var ProductSelect = {render: function(){var _vm=this;var _h=_vm.$createElement;v
       } else {
         return param1 / param2 * 100;
       }
+    },
+    recalc: function recalc(val) {
+      console.log(val);
+    },
+    toggleInvoice: function toggleInvoice() {
+      this.invoiceFlag = this.invoiceFlag ? false : true;
+    },
+    scrollTop: function scrollTop() {
+      var documentElement = null;
+      if (navigator.userAgent.toLowerCase().match(/webkit/)) {
+        documentElement = document.body;
+      } else {
+        documentElement = document.documentElement;
+      }
+      documentElement.scrollTop = 0;
+      // window.scrollTop = 200
+    },
+    test: function test() {
+      // this.scrollTo('03210111')
+      this.smoothScroll('article-03210111');
+    },
+    scrollTo: function scrollTo(id) {
+      var dat = "article-" + id;
+      var element = document.getElementById(dat);
+      var rect = element.getBoundingClientRect();
+      var pos = rect.top;
+      var documentElement = null;
+      if (navigator.userAgent.toLowerCase().match(/webkit/)) {
+        documentElement = document.body;
+      } else {
+        documentElement = document.documentElement;
+      }
+      documentElement.scrollTop = pos + window.pageYOffset;
+    },
+    smoothScroll: function smoothScroll(target) {
+      // if (intervalID != null) return;
+      // if (typeof target == 'string') target = document.querySelector(target);
+      if (typeof target == 'string') { target = document.getElementById(target); }
+
+      // 要素のY座標取得
+      target.rect = target.getBoundingClientRect();
+      target.posY = target.rect.top + window.pageYOffset;
+
+      // スクロール方向
+      var dir = (target.posY < window.pageYOffset) ? -1 : +1;
+      // スクロール量
+      var move = 20 * dir;
+      // 合計スクロール量
+      var totalScroll = window.pageYOffset;
+
+      var intervalID = setInterval(function () {
+
+        // 終了判定
+        if ((dir == +1 && totalScroll >= target.posY) ||
+          (dir == -1 && totalScroll <= target.posY)) {
+
+          // 位置合わせ
+          window.scrollTo(0, target.posY);
+
+          clearInterval(intervalID);
+          intervalID = null;
+          return;
+        }
+
+        window.scrollBy(0, move);
+        totalScroll += move;
+
+      }, 10);
     }
   },
   created: function created() {
@@ -68761,8 +68830,64 @@ var store$1 = new index_esm.Store({
   ]
 });
 
-var EditNumber = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('span',[_vm._v(_vm._s(_vm.message)+" 00")])])},staticRenderFns: [],
-  props: ['message']
+var EditNumber = {render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{on:{"click":_vm.onToggle}},[_c('span',{directives:[{name:"show",rawName:"v-show",value:(!_vm.editFlag),expression:"!editFlag"}]},[_vm._v(_vm._s(_vm._f("currency")(_vm.editval,'',_vm.dispdlag?3:0)))]),_c('input',{directives:[{name:"show",rawName:"v-show",value:(_vm.editFlag),expression:"editFlag"},{name:"model",rawName:"v-model",value:(_vm.showVal),expression:"showVal"},{name:"editinput",rawName:"v-editinput"}],staticClass:"inputter",attrs:{"name":"editinput","type":"text"},domProps:{"value":(_vm.showVal)},on:{"keypress":_vm.keycheck,"focus":_vm.onEdit,"blur":_vm.offToggle,"change":_vm.formatcheck,"input":function($event){if($event.target.composing){ return; }_vm.showVal=$event.target.value;}}})])},staticRenderFns: [],
+  props: {
+    editval: {
+      type: Number,
+      required: true
+    },
+    dispdlag: {
+      type: Boolean,
+      default: false
+    },
+    results: {
+      type: Function,
+      default: null
+    }
+  },
+  data: function data() {
+    return {
+      showVal: this.editval,
+      editFlag: false,
+      onEditFlag: false
+    }
+  },
+  methods: {
+    keycheck: function keycheck(event) {
+      var m = String.fromCharCode(event.keyCode);
+      if ("0123456789.-\b\r".indexOf(m, 0) < 0) {
+        event.returnValue = false;
+      }
+    },
+    onToggle: function onToggle(e) {
+      var this$1 = this;
+
+      this.editFlag = true;
+      setTimeout(function () { if (this$1.onEditFlag === false) { this$1.offToggle(); } }, 1000);
+    },
+    onEdit: function onEdit(e) {
+      this.onEditFlag = true;
+    },
+    offToggle: function offToggle(e) {
+      this.editFlag = false;
+      this.onEditFlag = false;
+      if (this.results !== null) {
+        this.results(this.showVal);
+      }
+      this.$emit('update:editval', this.showVal);
+    },
+    formatcheck: function formatcheck(val) {
+      if (this.showVal === null) {
+        this.showVal = 0;
+      }
+      var tmp = this.showVal.match(/-?[0-9]+\.?[0-9]*/g);
+      if (Array.isArray(tmp)) {
+        this.showVal = parseFloat(tmp[0]);
+      } else {
+        this.showVal = parseFloat(tmp);
+      }
+    }
+  }
 };
 
 var minotakaFunctions = (function () {
@@ -68853,58 +68978,6 @@ Vue$3.config.performance = false;
 // moment設定
 moment.locale('ja');
 
-// axios設定
-index$17.defaults.baseURL = "http://192.168.6.60/OrderStockManager/";
-index$17.interceptors.request.use(function (config) {
-  if (store$1.getters.isAuthenticated) {
-    config.headers['Authorization'] = "bearer " + Vue$3.ls.get("bearer", "");
-  } else {
-    delete config.headers['Authorization'];
-  }
-  return config;
-}, function (error) {
-  return Promise.reject(error)
-});
-index$17.interceptors.response.use(function (response) {
-  return response;
-}, function (error) {
-  return Promise.reject(error);
-});
-
-// 独自機能設定
-Vue$3.use(minotakaPlugins);
-
-// Vue.mixin({
-// })
-
-// フィルタ設定
-Vue$3.filter('converetDateFormat', function (value, format) {
-  try {
-    var tmp = moment(value);
-    var form = 'YYYY/MM/DD(ddd)';
-    if (format !== null && format !== undefined) { form = format; }
-    return tmp.format(form)
-  } catch (e) { return '' }
-});
-Vue$3.filter('deletedMessage', function (value) {
-  if (value) {
-    return '削除'
-  } else {
-    return '－'
-  }
-});
-Vue$3.filter('boolMessage', function (value, trueMessage, falseMessage) {
-  if (trueMessage === null || trueMessage === undefined) { trueMessage = 'true'; }
-  if (falseMessage === null || falseMessage === undefined) { falseMessage = 'false'; }
-  if (value) {
-    return trueMessage
-  } else {
-    return falseMessage
-  }
-});
-
-Vue$3.component('editNumber', EditNumber);
-
 // ルーター
 var router = new VueRouter({
   scrollBehavior: function (to, from, savedPosition) { return ({ x: 0, y: 0 }); },
@@ -68945,6 +69018,80 @@ router.beforeEach(function (to, from, next) {
     next();
   }
 });
+
+// axios設定
+index$17.defaults.baseURL = "http://192.168.6.60/OrderStockManager/";
+index$17.interceptors.request.use(function (config) {
+  if (store$1.getters.isAuthenticated) {
+    config.headers['Authorization'] = "bearer " + Vue$3.ls.get("bearer", "");
+  } else {
+    delete config.headers['Authorization'];
+  }
+  return config;
+}, function (error) {
+  return Promise.reject(error)
+});
+index$17.interceptors.response.use(function (response) {
+  return response;
+}, function (error) {
+  console.log(error);
+  if (error.response.status === 401) {
+    if (store$1.getters.isAuthenticated) {
+      ElementUI.Notification.error({
+        title: '認証情報が無効になりました',
+        message: '時間の経過等により認証情報が無効になりました。再度サインインを行ってください。'
+      });
+    }
+    router.push({ path: '/signin', query: { redirect: router.currentRoute.fullPath } });
+    store$1.dispatch('access_token', {});
+    return error
+  }
+  return Promise.reject(error);
+});
+
+// 独自機能設定
+Vue$3.use(minotakaPlugins);
+
+// Vue.mixin({
+// })
+
+// フィルタ設定
+Vue$3.filter('converetDateFormat', function (value, format) {
+  try {
+    var tmp = moment(value);
+    var form = 'YYYY/MM/DD(ddd)';
+    if (format !== null && format !== undefined) { form = format; }
+    return tmp.format(form)
+  } catch (e) { return '' }
+});
+Vue$3.filter('deletedMessage', function (value) {
+  if (value) {
+    return '削除'
+  } else {
+    return '－'
+  }
+});
+Vue$3.filter('boolMessage', function (value, trueMessage, falseMessage) {
+  if (trueMessage === null || trueMessage === undefined) { trueMessage = 'true'; }
+  if (falseMessage === null || falseMessage === undefined) { falseMessage = 'false'; }
+  if (value) {
+    return trueMessage
+  } else {
+    return falseMessage
+  }
+});
+
+Vue$3.directive('editinput', {
+  update: function (el) {
+    //var target = el.children.namedItem('editinput')
+    Vue$3.nextTick(function () {
+      //target.focus()
+      el.focus();
+    });
+  },
+});
+
+Vue$3.component('editNumber', EditNumber);
 
 var app = new Vue$3({
   router: router,

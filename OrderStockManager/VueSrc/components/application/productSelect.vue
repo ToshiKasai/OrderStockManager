@@ -8,7 +8,7 @@ div
     el-form-item(label="年度")
       |{{year}}
 
-  el-card.box-card(v-for="data in selectViews")
+  el-card.box-card(v-for="data in selectViews" :id="'article-' + data.product.code")
     div {{data.product.code}} : {{data.product.name}}
     .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
     table.ptable(border="0")
@@ -26,31 +26,44 @@ div
 
       tr
         th.title-st(rowspan="2") 発注
-        th.title-mid 予測
-        td(v-for="o in 12") {{data.salesList[o].order_plan | currency('',data.product.isSoldWeight?3:0)}}
+        th.title-mid 予定
+          i.el-icon-edit
+        td(v-for="o in 12")
+          edit-number(:editval.sync="data.salesList[o].order_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-mid 実績
         td(v-for="o in 12") {{data.salesList[o].order_actual | currency('',data.product.isSoldWeight?3:0)}}
 
       tr
-        th.title-st(rowspan="3") 入荷
+        th.title-st(:rowspan="invoiceFlag?5:3") 入荷
         th.title-mid 予定
-        td(v-for="o in 12") {{data.salesList[o].invoice_plan | currency('',data.product.isSoldWeight?3:0)}}
+          i.el-icon-edit
+        td(v-for="o in 12")
+          edit-number(:editval.sync="data.salesList[o].invoice_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-mid 実績
         td(v-for="o in 12") {{data.salesList[o].invoice_actual | currency('',data.product.isSoldWeight?3:0)}}
       tr
+        th.title-mid(@click="toggleInvoice") 残数
+          i.el-icon-arrow-down(:class="{'el-icon-arrow-up':invoiceFlag}")
+        td(v-for="o in 12") {{data.salesList[o].invoice_zan - data.salesList[o].invoice_adjust | currency('',data.product.isSoldWeight?3:0)}}
+      tr.hidden-title(v-show="invoiceFlag")
         th.title-mid 残数
-        td(v-for="o in 12" :class="{'text-danger':data.salesList[o].invoice_zan<0}")
-          // {{data.salesList[o].invoice_zan | currency('',data.product.isSoldWeight?3:0)}}
-          edit-number(:message="data.salesList[o].invoice_zan")
+        td(v-for="o in 12") {{data.salesList[o].invoice_zan | currency('',data.product.isSoldWeight?3:0)}}
+      tr.hidden-title(v-show="invoiceFlag")
+        th.title-mid 調整
+          i.el-icon-edit
+        td(v-for="o in 12" :class="{'text-danger':data.salesList[o].invoice_adjust<0}")
+          edit-number(:editval.sync="data.salesList[o].invoice_adjust" :dispdlag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-st(rowspan="6") 販売
         th.title-mid 前年
         td(v-for="o in 12") {{data.salesList[o].pre_sales_actual | currency('',data.product.isSoldWeight?3:0)}}
       tr
         th.title-mid 予算
-        td(v-for="o in 12") {{data.salesList[o].sales_plan | currency('',data.product.isSoldWeight?3:0)}}
+          i.el-icon-edit
+        td(v-for="o in 12")
+          edit-number(:editval.sync="data.salesList[o].sales_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-mid 動向
         td(v-for="o in 12") {{data.salesList[o].sales_trend | currency('',data.product.isSoldWeight?3:0)}}
@@ -63,6 +76,10 @@ div
       tr
         th.title-mid 予実比
         td(v-for="o in 12") {{percentage(data.salesList[o].sales_actual,data.salesList[o].sales_plan) | currency('',1)}}
+  div#floadBtnMenu(@click="test")
+    i.material-icons &#xE5D2;
+  div#floatButton(@click="scrollTop")
+    i.material-icons &#xE5D8;
 </template>
 
 <script>
@@ -81,7 +98,8 @@ export default {
       selectMaker: this.$store.getters.selectMaker,
       selectGroup: this.$store.getters.selectGroup,
       selectViews: [],
-      year: new Date().getFullYear()
+      year: new Date().getFullYear(),
+      invoiceFlag: false
     }
   },
   methods: {
@@ -110,6 +128,74 @@ export default {
       } else {
         return param1 / param2 * 100;
       }
+    },
+    recalc(val) {
+      console.log(val)
+    },
+    toggleInvoice() {
+      this.invoiceFlag = this.invoiceFlag ? false : true
+    },
+    scrollTop() {
+      var documentElement = null
+      if (navigator.userAgent.toLowerCase().match(/webkit/)) {
+        documentElement = document.body
+      } else {
+        documentElement = document.documentElement
+      }
+      documentElement.scrollTop = 0
+      // window.scrollTop = 200
+    },
+    test() {
+      // this.scrollTo('03210111')
+      this.smoothScroll('article-03210111')
+    },
+    scrollTo(id) {
+      var dat = "article-" + id
+      var element = document.getElementById(dat)
+      var rect = element.getBoundingClientRect()
+      var pos = rect.top
+      var documentElement = null
+      if (navigator.userAgent.toLowerCase().match(/webkit/)) {
+        documentElement = document.body
+      } else {
+        documentElement = document.documentElement
+      }
+      documentElement.scrollTop = pos + window.pageYOffset
+    },
+    smoothScroll(target) {
+      // if (intervalID != null) return;
+      // if (typeof target == 'string') target = document.querySelector(target);
+      if (typeof target == 'string') target = document.getElementById(target);
+
+      // 要素のY座標取得
+      target.rect = target.getBoundingClientRect();
+      target.posY = target.rect.top + window.pageYOffset;
+
+      // スクロール方向
+      var dir = (target.posY < window.pageYOffset) ? -1 : +1;
+      // スクロール量
+      var move = 20 * dir;
+      // 合計スクロール量
+      var totalScroll = window.pageYOffset;
+
+      var intervalID = setInterval(function () {
+
+        // 終了判定
+        if ((dir == +1 && totalScroll >= target.posY) ||
+          (dir == -1 && totalScroll <= target.posY)) {
+
+          // 位置合わせ
+          window.scrollTo(0, target.posY);
+
+          clearInterval(intervalID);
+          intervalID = null;
+          return;
+        }
+
+        window.scrollBy(0, move);
+        totalScroll += move;
+
+      }, 10);
     }
   },
   created() {
@@ -143,10 +229,14 @@ export default {
   font-size: 14px;
 }
 
-$border-color: #E5E9F2;
-
+$border-color: #E5E9F2; // Light Gray
+$title-bgcolor: #D3DCE6; // Gray
+$icon-color:#8492A6; // Silver
+$hidden-bgcolor:#EFF2F7; // Extra Light Gray
+$danger-color:#FF4949;
+$warning-color:#F7BA2A;
 .text-warning {
-  color: #F7BA2A;
+  color: $danger-color;
 }
 
 .bg-warning {
@@ -180,7 +270,7 @@ table.ptable th {
   border-bottom: 1px solid $border-color;
   border-top: 1px solid $border-color;
   border-left: 1px solid $border-color;
-  background: #EFF2F7;
+  background: $title-bgcolor;
   font-size: 14px;
   &.title-st {
     width: 4%;
@@ -196,6 +286,10 @@ table.ptable th {
   }
 }
 
+.hidden-title {
+  background-color: $hidden-bgcolor;
+}
+
 table.ptable td {
   text-align: right;
   padding: 4px;
@@ -203,5 +297,57 @@ table.ptable td {
   border-right: 1px solid $border-color;
   border-bottom: 1px solid $border-color;
   font-size: 14px;
+}
+
+i {
+  margin-left: 8px;
+  font-size: 10px;
+  color: $icon-color;
+}
+
+#floadBtnMenu {
+  position: fixed;
+  left: 30px;
+  top: 80px;
+  i {
+    font-size: 24px;
+    color: #EFF2F7;
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    border-radius: 50%;
+    line-height: 50px;
+    text-align: center;
+    background-color: rgba(32, 160, 255, 0.2);
+    transition-property: opacity, background, color;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+    &:hover {
+      background-color: rgb(32, 160, 255);
+    }
+  }
+}
+
+#floatButton {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  i {
+    font-size: 24px;
+    color: #EFF2F7;
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    border-radius: 50%;
+    line-height: 50px;
+    text-align: center;
+    background-color: rgba(71, 86, 105, 0.2);
+    transition-property: opacity, background, color;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+    &:hover {
+      background-color: rgb(71, 86, 105);
+    }
+  }
 }
 </style>
