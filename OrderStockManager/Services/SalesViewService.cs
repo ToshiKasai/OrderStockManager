@@ -25,9 +25,16 @@ namespace OrderStockManager.Services
 
         public SalesViewService()
         {
-            Mapper.Initialize(cfg =>
+            Mapper.Initialize(cfg => {
                 cfg.CreateMap<SalesTrendModel, SalesTrendInterfaceModel>()
-                    .ForMember(d => d.User_name, o => o.MapFrom(s => s.UserModel.Name))
+                    .ForMember(d => d.Id, o => o.MapFrom(s => s.Id))
+                    .ForMember(d => d.Product_id, o => o.MapFrom(s => s.ProductModelId))
+                    .ForMember(d => d.Detail_date, o => o.MapFrom(s => s.TargetDate))
+                    .ForMember(d => d.Quantity, o => o.MapFrom(s => s.Sales))
+                    .ForMember(d => d.Comments, o => o.MapFrom(s => s.Comments))
+                    .ForMember(d => d.User_id, o => o.MapFrom(s => s.UserModelId))
+                    .ForMember(d => d.User_name, o => o.MapFrom(s => s.UserModel.Name));
+                    }
             );
             // Mapper.AssertConfigurationIsValid();
         }
@@ -73,7 +80,7 @@ namespace OrderStockManager.Services
                     {
                         // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
                         startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
-                        endDate = startDate.AddMonths(months);
+                        endDate = startDate.AddMonths(months + 1);
                     }
                     else if (mode == SalesViewMode.FromTo)
                     {
@@ -190,7 +197,7 @@ namespace OrderStockManager.Services
                     {
                         // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
                         startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
-                        endDate = startDate.AddMonths(months);
+                        endDate = startDate.AddMonths(months + 1);
                     }
                     else if (mode == SalesViewMode.FromTo)
                     {
@@ -466,7 +473,17 @@ namespace OrderStockManager.Services
                 var trends = dbContext.SalesTrendModels
                     .Where(st => st.ProductModelId == product.resultData.Id).Where(st => st.Deleted == false)
                     .Where(st => st.TargetDate >= startDate).Where(st => st.TargetDate < endDate)
-                    .ProjectTo<SalesTrendInterfaceModel>()
+                    // .ProjectTo<SalesTrendInterfaceModel>()
+                    .Select(st => new SalesTrendInterfaceModel
+                    {
+                        Id = st.Id,
+                        Product_id = st.ProductModelId,
+                        Detail_date = st.TargetDate,
+                        Quantity = st.Sales,
+                        Comments = st.Comments,
+                        User_id = st.UserModelId,
+                        User_name = st.UserModel.Name
+                    })
                     .ToList();
 
                 return trends;
@@ -480,7 +497,18 @@ namespace OrderStockManager.Services
                 using (DataContext dbContext = DataContext.Create())
                 {
                     var trends = dbContext.SalesTrendModels.Where(st => st.ProductModelId == productId).Where(st => st.Id == trendId)
-                        .ProjectTo<SalesTrendInterfaceModel>().SingleOrDefault();
+                    //.ProjectTo<SalesTrendInterfaceModel>()
+                    .Select(st => new SalesTrendInterfaceModel
+                    {
+                        Id = st.Id,
+                        Product_id = st.ProductModelId,
+                        Detail_date = st.TargetDate,
+                        Quantity = st.Sales,
+                        Comments = st.Comments,
+                        User_id = st.UserModelId,
+                        User_name = st.UserModel.Name
+                    })
+                    .SingleOrDefault();
                     if (trends == null)
                     {
                         return new RepositoryResult<SalesTrendInterfaceModel>(HttpStatusCode.NotFound);
