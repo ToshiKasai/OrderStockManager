@@ -16,6 +16,12 @@ namespace OrderStockManager.Services
     public class SalesViewService : BaseService, ISalesViewService, IDisposable
     {
         // private IProductRepository productRepository = null;
+        enum SalesViewMode
+        {
+            NONE,
+            YEAR,
+            FromTo
+        }
 
         public SalesViewService()
         {
@@ -30,11 +36,20 @@ namespace OrderStockManager.Services
         {
             try
             {
+                SalesViewMode mode = SalesViewMode.NONE;
                 if (parameter.GroupId.HasValue == false && parameter.MakerId.HasValue == false)
                 {
                     return new RepositoryResult<IEnumerable<SalesViewInterfaceModel>>(HttpStatusCode.BadRequest);
                 }
-                if (!parameter.Year.HasValue)
+                if (parameter.Year.HasValue)
+                {
+                    mode = SalesViewMode.YEAR;
+                }
+                if(parameter.Begin.HasValue && parameter.End.HasValue)
+                {
+                    mode = SalesViewMode.FromTo;
+                }
+                if (mode == SalesViewMode.NONE)
                 {
                     return new RepositoryResult<IEnumerable<SalesViewInterfaceModel>>(HttpStatusCode.BadRequest);
                 }
@@ -52,8 +67,19 @@ namespace OrderStockManager.Services
 
                     // 全体の販売実績データ
                     List<SalesInterfaceModel> salesList;
-                    DateTime startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/10/1");
-                    DateTime endDate = startDate.AddMonths(months);
+                    DateTime startDate = DateTime.Now;
+                    DateTime endDate = DateTime.Now;
+                    if (mode == SalesViewMode.YEAR)
+                    {
+                        // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
+                        startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
+                        endDate = startDate.AddMonths(months);
+                    }
+                    else if (mode == SalesViewMode.FromTo)
+                    {
+                        startDate = parameter.Begin.GetValueOrDefault();
+                        endDate = startDate.AddMonths(months);
+                    }
                     salesList = dbContext.Database.SqlQuery<SalesInterfaceModel>(sql, startDate, endDate).ToList<SalesInterfaceModel>();
 
                     // 事業所別
@@ -66,7 +92,8 @@ namespace OrderStockManager.Services
                     foreach (var product in products)
                     {
                         // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
-                        DateTime check = startDate.AddMonths(-1); ;
+                        // DateTime check = startDate.AddMonths(-1);
+                        DateTime check = startDate;
                         SalesViewInterfaceModel addModel = new SalesViewInterfaceModel();
                         addModel.Product = product;
                         addModel.SalesList = new List<SalesInterfaceModel>();
@@ -86,9 +113,13 @@ namespace OrderStockManager.Services
                             {
                                 addModel.SalesList.Add(work);
                             }
+                        }
 
+                        foreach (var ofs in office)
+                        {
                             var workOffice = new List<SalesOfficeInterfaceModel>();
-                            foreach (var ofs in office)
+                            check = startDate;
+                            for (; check <= endDate; check = check.AddMonths(1))
                             {
                                 var ofsData = salesOfficeList.Where(x => x.product_id == addModel.Product.Id).Where(x => x.detail_date == check).Where(x => x.office_id == ofs.Id).SingleOrDefault();
                                 if (ofsData == null)
@@ -102,6 +133,8 @@ namespace OrderStockManager.Services
                                 }
                                 else
                                 {
+                                    ofsData.office_id = ofs.Id;
+                                    ofsData.office_name = ofs.Name;
                                     workOffice.Add(ofsData);
                                 }
                             }
@@ -122,15 +155,23 @@ namespace OrderStockManager.Services
         {
             try
             {
+                SalesViewMode mode = SalesViewMode.NONE;
                 if (productId <= 0)
                 {
                     return new RepositoryResult<SalesViewInterfaceModel>(HttpStatusCode.BadRequest);
                 }
-                if (!parameter.Year.HasValue)
+                if (parameter.Year.HasValue)
+                {
+                    mode = SalesViewMode.YEAR;
+                }
+                if (parameter.Begin.HasValue && parameter.End.HasValue)
+                {
+                    mode = SalesViewMode.FromTo;
+                }
+                if (mode == SalesViewMode.NONE)
                 {
                     return new RepositoryResult<SalesViewInterfaceModel>(HttpStatusCode.BadRequest);
                 }
-
 
                 using (DataContext dbContext = DataContext.Create())
                 using (var productRepository = new ProductRepository())
@@ -143,8 +184,19 @@ namespace OrderStockManager.Services
 
                     // 全体の販売実績データ
                     List<SalesInterfaceModel> salesList;
-                    DateTime startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/10/1");
-                    DateTime endDate = startDate.AddMonths(months);
+                    DateTime startDate = DateTime.Now;
+                    DateTime endDate = DateTime.Now;
+                    if (mode == SalesViewMode.YEAR)
+                    {
+                        // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
+                        startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
+                        endDate = startDate.AddMonths(months);
+                    }
+                    else if (mode == SalesViewMode.FromTo)
+                    {
+                        startDate = parameter.Begin.GetValueOrDefault();
+                        endDate = startDate.AddMonths(months);
+                    }
                     salesList = dbContext.Database.SqlQuery<SalesInterfaceModel>(ServiceResource.SelectSalesViews, startDate, endDate, product.resultData.Id).ToList<SalesInterfaceModel>();
 
                     ICollection<OfficeModel> office = dbContext.OfficeModels.Where(o => o.Deleted == false).OrderBy(o => o.Code).ToList();
@@ -154,7 +206,8 @@ namespace OrderStockManager.Services
                     salesOfficeList = dbContext.Database.SqlQuery<SalesOfficeInterfaceModel>(ServiceResource.SelectOfficesSalesViews, startDate, endDate, product.resultData.Id).ToList<SalesOfficeInterfaceModel>();
 
                     // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
-                    DateTime check = startDate.AddMonths(-1);
+                    // DateTime check = startDate.AddMonths(-1);
+                    DateTime check = startDate;
 
                     var resultData = new SalesViewInterfaceModel();
                     resultData.Product = product.resultData;
@@ -175,9 +228,13 @@ namespace OrderStockManager.Services
                         {
                             resultData.SalesList.Add(work);
                         }
+                    }
 
+                    foreach (var value in office)
+                    {
                         var workOffice = new List<SalesOfficeInterfaceModel>();
-                        foreach (var value in office)
+                        check = startDate;
+                        for (; check <= endDate; check = check.AddMonths(1))
                         {
                             var ofsData = salesOfficeList.Where(x => x.product_id == resultData.Product.Id).Where(x => x.detail_date == check).Where(x => x.office_id == value.Id).SingleOrDefault();
                             if (ofsData == null)
@@ -193,11 +250,14 @@ namespace OrderStockManager.Services
                             }
                             else
                             {
+                                ofsData.office_id = value.Id;
+                                ofsData.office_name = value.Name;
                                 workOffice.Add(ofsData);
                             }
                         }
                         resultData.OfficeSales.Add(workOffice);
                     }
+
                     return new RepositoryResult<SalesViewInterfaceModel>(HttpStatusCode.OK, resultData);
                 }
             }
@@ -363,8 +423,9 @@ namespace OrderStockManager.Services
             }
         }
 
-        public IEnumerable<SalesTrendInterfaceModel> GetSalesTrandsForInterface(int productId, CustomParameterModel parameter)
+        public IEnumerable<SalesTrendInterfaceModel> GetSalesTrandsForInterface(int productId, CustomParameterModel parameter, int months = 12)
         {
+            SalesViewMode mode = SalesViewMode.NONE;
             using (DataContext dbContext = DataContext.Create())
             using (var productRepository = new ProductRepository())
             {
@@ -373,13 +434,34 @@ namespace OrderStockManager.Services
                 {
                     return null;
                 }
-                if (parameter.Year.HasValue == false)
+                if (parameter.Year.HasValue)
                 {
-                    return null;
+                    mode = SalesViewMode.YEAR;
+                }
+                if (parameter.Begin.HasValue && parameter.End.HasValue)
+                {
+                    mode = SalesViewMode.FromTo;
+                }
+                if (mode == SalesViewMode.NONE)
+                {
+                    return null; ;
                 }
 
-                DateTime startDate = DateTime.Parse((parameter.Year.GetValueOrDefault() - 1).ToString() + "/10/1");
-                DateTime endDate = startDate.AddYears(1);
+                DateTime startDate = DateTime.Now;
+                DateTime endDate = DateTime.Now;
+                if (mode == SalesViewMode.YEAR)
+                {
+                    // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
+                    startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
+                    endDate = startDate.AddMonths(months);
+                }
+                else if (mode == SalesViewMode.FromTo)
+                {
+                    startDate = parameter.Begin.GetValueOrDefault();
+                    endDate = startDate.AddMonths(months);
+                }
+                // DateTime startDate = DateTime.Parse((parameter.Year.GetValueOrDefault() - 1).ToString() + "/10/1");
+                // DateTime endDate = startDate.AddYears(1);
 
                 var trends = dbContext.SalesTrendModels
                     .Where(st => st.ProductModelId == product.resultData.Id).Where(st => st.Deleted == false)
