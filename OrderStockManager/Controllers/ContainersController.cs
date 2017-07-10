@@ -16,11 +16,9 @@ namespace OrderStockManager.Controllers
     [RoutePrefix("api/containers")]
     public class ContainersController : BaseApiController
     {
-        public ContainersController()
+        public ContainersController() : base()
         {
-            Mapper.Initialize(cfg =>
-                cfg.CreateMap<ContainerModel, ContainerInterfaceModel>()
-            );
+            MappingConfig.MappingSetting();
         }
 
         [HttpGet]

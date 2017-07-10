@@ -203,6 +203,13 @@ namespace OrderStockManager.Controllers
         }
         #endregion
 
+        [HttpGet]
+        [Route("download")]
+        public IHttpActionResult DownloadSalesViews([FromUri]CustomParameterModel param)
+        {
+            return Ok();
+        }
+
         [HttpPost]
         [Route("upload")]
         public async Task<IHttpActionResult> UploadSalesViewsAsync()

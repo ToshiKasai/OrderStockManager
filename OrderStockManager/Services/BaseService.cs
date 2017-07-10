@@ -7,7 +7,7 @@ using System.Web;
 
 namespace OrderStockManager.Services
 {
-    public class BaseService : IDisposable
+    public class BaseService : MappingConfig, IDisposable
     {
         private ApplicationUserManager _AppUserManager = null;
         private ApplicationRoleManager _AppRoleManager = null;

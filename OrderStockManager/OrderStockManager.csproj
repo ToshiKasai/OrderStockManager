@@ -276,6 +276,7 @@
     <Compile Include="Infrastructure\ApplicationRoleManager.cs" />
     <Compile Include="Infrastructure\ApplicationUserManager.cs" />
     <Compile Include="Infrastructure\DataContext.cs" />
+    <Compile Include="Infrastructure\MappingConfig.cs" />
     <Compile Include="Models\ApplicationLogModel.cs" />
     <Compile Include="Models\ContainerModel.cs" />
     <Compile Include="Models\CurrentStockModel.cs" />

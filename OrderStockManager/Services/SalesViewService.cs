@@ -25,18 +25,6 @@ namespace OrderStockManager.Services
 
         public SalesViewService()
         {
-            Mapper.Initialize(cfg => {
-                cfg.CreateMap<SalesTrendModel, SalesTrendInterfaceModel>()
-                    .ForMember(d => d.Id, o => o.MapFrom(s => s.Id))
-                    .ForMember(d => d.Product_id, o => o.MapFrom(s => s.ProductModelId))
-                    .ForMember(d => d.Detail_date, o => o.MapFrom(s => s.TargetDate))
-                    .ForMember(d => d.Quantity, o => o.MapFrom(s => s.Sales))
-                    .ForMember(d => d.Comments, o => o.MapFrom(s => s.Comments))
-                    .ForMember(d => d.User_id, o => o.MapFrom(s => s.UserModelId))
-                    .ForMember(d => d.User_name, o => o.MapFrom(s => s.UserModel.Name));
-                    }
-            );
-            // Mapper.AssertConfigurationIsValid();
         }
 
         public RepositoryResult<IEnumerable<SalesViewInterfaceModel>> GetSalesViewsForInterface(CustomParameterModel parameter, int months = 12)
