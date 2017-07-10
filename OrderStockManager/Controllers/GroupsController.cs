@@ -106,7 +106,11 @@ namespace OrderStockManager.Controllers
                     return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
                 var model = repository.GetGroupByIdForInterface(id);
-                return Ok(model);
+                if (model.Code != HttpStatusCode.OK)
+                {
+                    return Content(model.Code, model.message);
+                }
+                return Ok(model.resultData);
             }
             catch (Exception ex)
             {
