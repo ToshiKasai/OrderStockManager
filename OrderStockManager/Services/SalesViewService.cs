@@ -448,7 +448,7 @@ namespace OrderStockManager.Services
                 {
                     // 在庫予測計算用に１ヶ月多めに取得（貿易のみ）
                     startDate = DateTime.Parse((parameter.Year - 1).ToString() + "/9/1");
-                    endDate = startDate.AddMonths(months);
+                    endDate = startDate.AddMonths(months + 1);
                 }
                 else if (mode == SalesViewMode.FromTo)
                 {

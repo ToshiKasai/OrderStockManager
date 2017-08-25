@@ -205,9 +205,20 @@ namespace OrderStockManager.Controllers
 
         [HttpGet]
         [Route("download")]
-        public IHttpActionResult DownloadSalesViews([FromUri]CustomParameterModel param)
+        public HttpResponseMessage DownloadSalesViews([FromUri]CustomParameterModel param)
         {
-            return Ok();
+            var excelService = new SalesViewExcelService();
+            var exceldata = excelService.CreateXlsxOneSheetBySalesView(param);
+            var content = new ByteArrayContent(exceldata);
+
+            var result = new HttpResponseMessage(HttpStatusCode.OK);
+            result.Content = new StreamContent(new MemoryStream(exceldata));
+            // result.Content = content;
+            result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            // result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            return result;
+
+            // return Ok(exceldata);
         }
 
         [HttpPost]
@@ -222,17 +233,20 @@ namespace OrderStockManager.Controllers
 
             // マルチパートデータを一時的に保存する場所を指定
             var rootPath = Path.GetTempPath();
-            var serverPath = System.Web.Hosting.HostingEnvironment.MapPath(rootPath);
+            // var serverPath = System.Web.Hosting.HostingEnvironment.MapPath(rootPath);
             var provider = new MultipartFormDataStreamProvider(rootPath);
 
             // 実際に読み込む
             await Request.Content.ReadAsMultipartAsync(provider);
+
+            var excelService = new SalesViewExcelService();
 
             // ファイルデータを読む
             foreach (var file in provider.FileData)
             {
                 // ファイル情報を取得
                 var fileInfo = new FileInfo(file.LocalFileName);
+                excelService.ReadXlsxToSalesView(fileInfo);
             }
 
             return Ok();

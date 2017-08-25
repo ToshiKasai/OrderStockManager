@@ -87,7 +87,8 @@ namespace OrderStockManager.Controllers
                     return Content(result.Code, ModelState.GetErrorsDelprefix("value"));
                 }
                 var model = repository.GetProductByIdForInterface(id);
-                return Ok(model);
+                return Ok(model.resultData);
+                // return Ok();
             }
             catch (Exception ex)
             {

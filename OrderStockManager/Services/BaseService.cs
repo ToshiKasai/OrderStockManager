@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
 using OrderStockManager.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,14 @@ namespace OrderStockManager.Services
             get
             {
                 return _AppRoleManager ?? HttpContext.Current.GetOwinContext().GetUserManager<ApplicationRoleManager>();
+            }
+        }
+
+        protected IAuthenticationManager AuthenticationManager
+        {
+            get
+            {
+                return HttpContext.Current.GetOwinContext().Authentication;
             }
         }
 
