@@ -19,6 +19,8 @@ namespace OrderStockManager.Controllers
         private ApplicationUserManager _AppUserManager = null;
         private ApplicationRoleManager _AppRoleManager = null;
 
+        const string OCTET = "application/octet-stream";
+
         protected ApplicationUserManager AppUserManager
         {
             get
@@ -151,6 +153,15 @@ namespace OrderStockManager.Controllers
                         ModelState.AddModelError("", err.Trim(' ') + "。");
                 }
             }
+        }
+
+        protected HttpResponseMessage ByteResponse(byte[] content, HttpStatusCode code = HttpStatusCode.OK)
+        {
+            var result = new HttpResponseMessage(code);
+            // result.Content = new ByteArrayContent(content);
+            result.Content = new StreamContent(new System.IO.MemoryStream(content));
+            result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(OCTET);
+            return result;
         }
     }
 }

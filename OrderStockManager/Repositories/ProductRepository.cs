@@ -99,7 +99,7 @@ namespace OrderStockManager.Repositories
                     product.Magnification = modifiedProduct.Magnification;
                     product.MinimumOrderQuantity = modifiedProduct.MinimumOrderQuantity;
                     product.Enabled = modifiedProduct.Enabled;
-                    // dbContext.Entry(product).State = EntityState.Modified;
+                    dbContext.Entry(product).State = EntityState.Modified;
 
                     // dbContext.SaveChanges();
                     if (dbContext.SaveChanges() == 0)

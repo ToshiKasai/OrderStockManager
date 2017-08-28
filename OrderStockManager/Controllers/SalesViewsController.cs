@@ -18,10 +18,12 @@ namespace OrderStockManager.Controllers
     public class SalesViewsController : BaseApiController
     {
         private ISalesViewService service = null;
+        private ISalesViewExcelService excelService = null;
 
-        public SalesViewsController(ISalesViewService service)
+        public SalesViewsController(ISalesViewService service, ISalesViewExcelService excelService)
         {
             this.service = service;
+            this.excelService = excelService;
         }
 
         [HttpGet]
@@ -207,65 +209,28 @@ namespace OrderStockManager.Controllers
         [Route("download")]
         public HttpResponseMessage DownloadSalesViews([FromUri]CustomParameterModel param)
         {
-            var excelService = new SalesViewExcelService();
             var exceldata = excelService.CreateXlsxOneSheetBySalesView(param);
-            var content = new ByteArrayContent(exceldata);
-
-            var result = new HttpResponseMessage(HttpStatusCode.OK);
-            result.Content = new StreamContent(new MemoryStream(exceldata));
-            // result.Content = content;
-            result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-            // result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            return result;
-
-            // return Ok(exceldata);
+            return ByteResponse(exceldata);
         }
 
         [HttpPost]
         [Route("upload")]
         public async Task<IHttpActionResult> UploadSalesViewsAsync()
         {
-            // multipart/form-data 以外は 415 を返す
             if (!Request.Content.IsMimeMultipartContent())
             {
                 return StatusCode(HttpStatusCode.UnsupportedMediaType);
             }
 
-            // マルチパートデータを一時的に保存する場所を指定
             var rootPath = Path.GetTempPath();
-            // var serverPath = System.Web.Hosting.HostingEnvironment.MapPath(rootPath);
             var provider = new MultipartFormDataStreamProvider(rootPath);
 
-            // 実際に読み込む
             await Request.Content.ReadAsMultipartAsync(provider);
-
-            var excelService = new SalesViewExcelService();
-
-            // ファイルデータを読む
             foreach (var file in provider.FileData)
             {
-                // ファイル情報を取得
                 var fileInfo = new FileInfo(file.LocalFileName);
                 excelService.ReadXlsxToSalesView(fileInfo);
             }
-
-            return Ok();
-        }
-
-        [HttpPost]
-        [Route("up")]
-        public async Task<IHttpActionResult> UpSalesViewsAsync()
-        {
-            var provider = await Request.Content.ReadAsMultipartAsync();
-            var fileContent = provider.Contents.First(x => x.Headers.ContentDisposition.Name == JsonConvert.SerializeObject("buffer"));
-            var buffer = await fileContent.ReadAsByteArrayAsync();
-            var json = await provider.Contents.First(x => x.Headers.ContentDisposition.Name == JsonConvert.SerializeObject("fileName")).ReadAsStringAsync();
-            var fileName = JsonConvert.DeserializeObject<string>(json);
-
-            // var blob = this.container.GetBlockBlobReference(fileName);
-            // blob.Properties.ContentType = fileContent.Headers.ContentType.MediaType;
-            // await blob.UploadFromByteArrayAsync(buffer, 0, buffer.Length);
-
             return Ok();
         }
     }

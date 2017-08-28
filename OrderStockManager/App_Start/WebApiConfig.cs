@@ -30,6 +30,7 @@ namespace OrderStockManager
             container.RegisterType<IGroupRepository, GroupRepository>(new HierarchicalLifetimeManager());
 
             container.RegisterType<ISalesViewService, SalesViewService>(new HierarchicalLifetimeManager());
+            container.RegisterType<ISalesViewExcelService, SalesViewExcelService>(new HierarchicalLifetimeManager());
 
             config.DependencyResolver = new UnityResolver(container);
 
